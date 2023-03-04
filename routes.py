@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
-from .models import Student
-from .extensions import db
-from .application import create_app
+from models import Student
+from extensions import db
+from application import create_app
+
 
 app = create_app()
 

@@ -1,4 +1,4 @@
-from .extensions import db
+from extensions import db
 
 class Student(db.Model):
     __tablename__ = "students"
