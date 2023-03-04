@@ -9,7 +9,10 @@ app = create_app()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    _results = Person.query.all()
+    names = sorted(list({result.name for result in _results if result.name}))
+    
+    return render_template('index.html', results=[], names = names)
 
 
 @app.route("/submit", methods=["POST"])
