@@ -2,9 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Buranji</title>
 </head>
 <body>
-    Your data has been send successfully. We look forward to seeing you in September, {{data}}!
+
+   	<h1>Results</h1>
+	<ul>
+	{% for user in results %}
+		<li>{{ user.fname }}</li>
+	{% endfor %}
+	</ul>
+
 </body>
 </html>

@@ -12,5 +12,12 @@ class Student(db.Model):
         self.lname = lname
         self.pet = pet
 
+class Person(db.Model):
+    __tablename__ = "persons"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(40))
+    reference = db.Column(db.String(200))
 
-
+    def __init__(self, name, reference):
+        self.name = name
+        self.reference = reference
