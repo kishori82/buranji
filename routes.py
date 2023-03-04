@@ -4,7 +4,6 @@ from .models import Student
 from .extensions import db
 from .application import create_app
 
-
 app = create_app()
 
 @app.route("/")
