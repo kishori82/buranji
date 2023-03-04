@@ -2,10 +2,11 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from .models import Student
 from .extensions import db
-from . import create_app
+from .application import create_app
 
 
 app = create_app()
+
 @app.route("/")
 def index():
     return render_template("index.html")
