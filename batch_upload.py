@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2 import sql
 from flask import current_app
-from models import db, Person
+from models import db, Words
 import os
 
 def batch_upload(data):
@@ -25,13 +25,13 @@ def batch_upload(data):
     cur = conn.cursor()
 
     # Build the SQL statement to insert the data
-    #values = [Person(*row) for row in data if row]
+    #values = [Words(*row) for row in data if row]
     values = []
     for row in data:
        if len(row) == 2:
-           values.append(Person(*row))
+           values.append(Words(*row))
 
-    #values = [Person(*row) for row in data if row]
+    #values = [Words(*row) for row in data if row]
     db.session.bulk_save_objects(values)
     db.session.commit()
 

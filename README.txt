@@ -1,0 +1,17 @@
+
+# load data into the db
+python create-word-index.py --db-file buranji.db --books /home/kishori/Lacit/API_vision_google/books/text/*.english.txt
+
+python create-word-index.py --db-file buranji.db --books ../API_vision_google/books/text/*.txt
+python create-word-index.py --db-file buranji.db --books ../API_vision_google/books/text/*.txt --books-info-file book-list.tsv
+
+# clear data
+flask --app=run.py shell
+from application import db
+db.create_all()
+rm buranji.db
+
+# run the app
+flask --app=run.py run
+
+
