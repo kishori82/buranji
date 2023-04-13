@@ -21,7 +21,6 @@ def main():
 
     book_index, word_indices, content_array = create_index(args)
 
-    print(book_index)
     insert_books_to_db(args.db_file, book_index)
 
     insert_words_to_db(args.db_file, word_indices)
@@ -77,7 +76,7 @@ def create_index(args):
         book_info = {}
         for line in f:
             fields = [x.strip() for x in line.strip().split("\t")]
-            if fields and len(fields) == 4:
+            if fields and len(fields) == 6:
                 book_info[fields[0]] = fields[1:]
 
     book_index = []

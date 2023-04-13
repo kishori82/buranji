@@ -7,9 +7,10 @@ from models import Books, Words, Content
 from extensions import db
 from application import create_app
 from batch_upload import batch_upload
-from utilities import substring_around
+from utilities import substring_around, text_with_query_words
 
 app = create_app()
+
 
 
 @app.route("/")
@@ -60,7 +61,7 @@ def search():
 
 
     # split the query into words, e.g., separated by comma, space
-    query_words = [ x.strip() for x in re.split(r'[,\s]+', query) if x.strip() ]
+    query_words = set([ x.strip() for x in re.split(r'[,\s]+', query) if x.strip() ])
 
     # Store the query results in an array
     query_results = []
@@ -118,10 +119,12 @@ def search():
     data = []
     for book_id, title, author, url, _, page_no in results[start_index:end_index]:  
        content = Content.query.filter(Content.book_id == book_id, Content.page_no==page_no).first()
-       modified_texts = []
-       for query_word in query_words:
-          modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
-       data.append((title, author, url, '\n...'.join(modified_texts), page_no))
+       #modified_texts = []
+       #for query_word in query_words:
+       #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
+
+       modified_texts = text_with_query_words(content.text, query_words, delta=20)
+       data.append((title, author, url, '<br>...'.join(modified_texts), page_no))
        
     return render_template("index.html", query=query, num_pages=num_pages, current_page=page, results=data)
 

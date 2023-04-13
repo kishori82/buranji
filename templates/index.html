@@ -122,7 +122,7 @@
          {% for title, author, url, snippet, page in results %}
           <div class="result">
               <cite> {{ title }} by {{ author }},  page: {{ page }}</cite>
-              <h2><a href="{{link}}"> {{ title }} </a></h2>
+              <h2><a href="{{ url }}"> {{ title }} </a></h2>
               <p>...{{ snippet|safe }}...</p>
           </div>
           {% endfor %}
@@ -142,7 +142,9 @@
         {% if page == current_page %}
         <span class="page-item">{{ page }}</span>
         {% else %}
-        <a class="page-item" href="/search?q={{ query }}&page={{ page }}">{{ page }}</a>
+          {% if page <= current_page + 5 and page >= current_page - 5 %}
+              <a class="page-item" href="/search?q={{ query }}&page={{ page }}">{{ page }}</a>
+          {% endif %}
         {% endif %}
         {% endfor %}
         {% if current_page < num_pages %}
