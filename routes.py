@@ -11,8 +11,6 @@ from utilities import substring_around, text_with_query_words
 
 app = create_app()
 
-
-
 @app.route("/")
 def index():
     _results = Words.query.all()

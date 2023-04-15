@@ -1,4 +1,7 @@
 
+# youtube
+https://youtu.be/IBfj_0Zf2Mo
+
 # load data into the db
 python create-word-index.py --db-file buranji.db --books /home/kishori/Lacit/API_vision_google/books/text/*.english.txt
 
