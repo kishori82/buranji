@@ -9,11 +9,11 @@ def create_app():
 
     app = Flask(__name__)
 
-    db_file_path = os.path.join(Path(__file__).parent.absolute(), 'buranji.db')
+    #db_file_path = os.path.join(Path(__file__).parent.absolute(), 'buranji.db')
+    #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(db_file_path)
     # Set the configuration for the app's SQLAlchemy connection
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(db_file_path)
 
-    #app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 
     db.init_app(app)
 

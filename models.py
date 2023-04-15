@@ -35,7 +35,7 @@ class Content(db.Model):
     id = db.Column(db.Integer)
     book_id = db.Column(db.String(100))
     page_no = db.Column(db.Integer)
-    text = db.Column(db.String(1000))
+    text = db.Column(db.String(5000))
 
     def __init__(self, content_id, book_id, page_no, text):
         self.id = content_id

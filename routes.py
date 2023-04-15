@@ -13,11 +13,10 @@ app = create_app()
 
 @app.route("/")
 def index():
-    _results = Words.query.all()
+    #_results = Words.query.all()
     #names = sorted(list({result.name for result in _results if result.name}))
-    names = []
-
-    return render_template("index.html", results=[], names=names)
+    #names = []
+    return render_template("index.html", results=[], names=[])
 
 
 @app.route("/submit", methods=["POST"])

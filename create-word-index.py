@@ -6,62 +6,139 @@ import re
 import os
 import json
 import string
+import psycopg2
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from pathlib import Path
+
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
-
-
-# conn.commit()
-# conn.close()
-#
-
+from application import create_app 
+from extensions import db
+from models import Books, Words, Content
 
 def main():
     """This script few txt file with book/pages and inserts the word index to the specified table"""
     args = create_arguments()
-
     book_index, word_indices, content_array = create_index(args)
 
-    insert_books_to_db(args.db_file, book_index)
+    app = Flask(__name__)
+    if 'postgresql' in args.db_file:
+       app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    else:
+       # Set the configuration for the app's SQLAlchemy connection
+       db_file_path = os.path.join(Path(__file__).parent.absolute(), args.db_file)
+       app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(db_file_path)
 
-    insert_words_to_db(args.db_file, word_indices)
+    #db = SQLAlchemy(app)
+    db.init_app(app)
+   
+    with app.app_context():
+          db.create_all()
+          db.session.commit()
+   
+          insert_books_to_db(db, book_index)
+          db.session.commit()
+   
+          insert_words_to_db(db, word_indices)
+          db.session.commit()
+   
+          insert_content_to_db(db, content_array)
+          db.session.commit()
 
-    insert_content_to_db(args.db_file, content_array)
 
+def get_remote_connection():
+    # Get the database connection parameters from Flask configuration
+    host = os.environ['DATABASE_HOST']
+    port = os.environ['DATABASE_PORT']
+    user = os.environ['DATABASE_USER']
+    password = os.environ['DATABASE_PASSWORD']
+    database = os.environ['DATABASE_NAME']
 
-def insert_books_to_db(db_file, index_array):
-    conn = sqlite3.connect(db_file)
+    # Connect to the database
+    conn = psycopg2.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        database=database
+    )
+    return conn
 
+    # Create a cursor
+
+def insert_books_to_db(db, index_array):
+    #conn = sqlite3.connect(db_file)
+
+    #from models import Books
     for book_id, title, author, url, book_file_path in index_array:
-        row_insert_command = f"INSERT INTO books VALUES (?, ?, ?, ?)"
+        db.session.add(Books(book_id, title, author, url))
 
-        conn.execute(row_insert_command, (int(book_id), title, author, url))
+        #row_insert_command = f"INSERT INTO books VALUES (?, ?, ?, ?)"
+        #conn.execute(row_insert_command, (int(book_id), title, author, url))
 
+    #conn.commit()
+    #conn.close()
+
+def insert_books_to_db_remote(index_array):
+    # Create a connection
+    conn = get_remote_connection()
+    # Create a cursor
+    cur = conn.cursor()
+
+    # Build the SQL statement to insert the data
+    books =  []
+    for book_id, title, author, url, book_file_path in index_array:
+        books.append((book_id, title, author, url))
+
+    cur.executemany("INSERT INTO books VALUES (%s, %s, %s, %s)", books)
     conn.commit()
+
+    # Commit the transaction and close the cursor and connection
+    cur.close()
     conn.close()
 
 
-def insert_words_to_db(db_file, index_array):
-    conn = sqlite3.connect(db_file)
+def insert_words_to_db(db, index_array):
+    #conn = sqlite3.connect(db_file)
 
+    i = 0
     for index, word, value in index_array:
-        row_insert_command = f"INSERT INTO words VALUES (?, ?, ?)"
+        #print(index, word, value)
 
-        conn.execute(row_insert_command, (index, word, value))
+        if len(word) > 100: 
+            print("skipping long word of length ",  len(word))
+            continue
 
-    conn.commit()
-    conn.close()
+        if len(value) > 20000: 
+            print("skipping excessively popular word", len(value))
+            continue
+
+        db.session.add(Words(index, word, value))
+
+        #row_insert_command = f"INSERT INTO words VALUES (?, ?, ?)"
+        #conn.execute(row_insert_command, (index, word, value))
+
+    #conn.commit()
+    #conn.close()
 
 
-def insert_content_to_db(db_file, index_array):
-    conn = sqlite3.connect(db_file)
-
+def insert_content_to_db(db, index_array):
+    #conn = sqlite3.connect(db_file)
     for _id, index, word, value in index_array:
-        row_insert_command = f"INSERT INTO content VALUES (?,  ?, ?, ?)"
 
-        conn.execute(row_insert_command, (_id, index, word, value))
+        if len(value) > 5000: 
+            print("skipping excessively large page text", len(value))
+            continue
 
-    conn.commit()
-    conn.close()
+        db.session.add(Content(_id, index, word, value))
+
+    #    row_insert_command = f"INSERT INTO content VALUES (?,  ?, ?, ?)"
+    #    conn.execute(row_insert_command, (_id, index, word, value))
+
+    #conn.commit()
+    #conn.close()
 
 
 def create_index(args):
@@ -75,6 +152,8 @@ def create_index(args):
     with open(args.books_info_file, encoding="utf-8") as f:
         book_info = {}
         for line in f:
+            if re.search(r'^#', line):
+               continue
             fields = [x.strip() for x in line.strip().split("\t")]
             if fields and len(fields) == 6:
                 book_info[fields[0]] = fields[1:]
@@ -162,7 +241,7 @@ def create_arguments():
         "-d",
         dest="db_file",
         required=True,
-        help="the db file",
+        help="the db file locally",
     )
     parser.add_argument(
         "--books",
@@ -179,6 +258,7 @@ def create_arguments():
         required=True,
         help="file with book information",
     )
+
     args = parser.parse_args()
     return args
 
