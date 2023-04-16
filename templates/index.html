@@ -22,6 +22,10 @@
             background-repeat: no-repeat;
             background-size: contain;
         }
+        .container {
+        margin: 40px auto 0;
+        }
+
 
         .search-buttons {
             display: flex;
@@ -108,12 +112,12 @@
    <div class="container">
       <div class="justify-content-center align-items-center">
 
-        <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+        <div class="row col-md-10 col-sm-12 col-lg-12 text-center">
            <img src="https://i.ibb.co/7Sc95PW/buranji-logo.jpg" alt="Logo" class="img-fluid mb-3">
         </div>
    
            <!-- Search Input --> 
-        <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+        <div class="row col-md-10 col-sm-12 col-lg-12 text-center">
            <form id="searchForm" class="mt-4" method="POST" action="{{ url_for('search') }}">
                <div class="input-group">
                    <input type="text" class="form-control" id="searchInput" name="query" placeholder="Search" aria-label="Search">
@@ -121,7 +125,7 @@
            </form>
         </div>
    
-        <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+        <div class="row col-md-10 col-sm-12 col-lg-12 text-center">
            <!-- Search Buttons --> 
            <div class="search-buttons mt-3">
                <button class="btn btn-primary" type="submit" form="searchForm">Buranji Search</button>
