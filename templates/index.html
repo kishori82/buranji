@@ -105,67 +105,70 @@
 </head>
 <body>
 
-    <div class="container">
-  <div class="justify-content-center align-items-center">
+   <div class="container">
+      <div class="justify-content-center align-items-center">
 
-    <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
-      <img src="https://i.ibb.co/7Sc95PW/buranji-logo.jpg" alt="Logo" class="img-fluid mb-3">
-    </div>
-
-        <!-- Search Input --> 
-    <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
-        <form id="searchForm" class="mt-4" method="POST" action="{{ url_for('search') }}">
-            <div class="input-group">
-                <input type="text" class="form-control" id="searchInput" name="query" placeholder="Search" aria-label="Search">
-            </div>
-        </form>
-    </div>
-
-    <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
-        <!-- Search Buttons --> 
-        <div class="search-buttons mt-3">
-            <button class="btn btn-primary" type="submit" form="searchForm">Buranji Search</button>
+        <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+           <img src="https://i.ibb.co/7Sc95PW/buranji-logo.jpg" alt="Logo" class="img-fluid mb-3">
         </div>
-    </div>
+   
+           <!-- Search Input --> 
+        <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+           <form id="searchForm" class="mt-4" method="POST" action="{{ url_for('search') }}">
+               <div class="input-group">
+                   <input type="text" class="form-control" id="searchInput" name="query" placeholder="Search" aria-label="Search">
+               </div>
+           </form>
+        </div>
+   
+        <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+           <!-- Search Buttons --> 
+           <div class="search-buttons mt-3">
+               <button class="btn btn-primary" type="submit" form="searchForm">Buranji Search</button>
+           </div>
+        </div>
 
-    <div class="results-container">
-       {% if results %}
-         <h3>search results for: {{ query }} </h3>
-         {% for title, author, url, snippet, page in results %}
-          <div class="result">
-              <cite> {{ title }} by {{ author }},  page: {{ page }}</cite>
-              <h2><a href="{{ url }}"> {{ title }} </a></h2>
-              <p>...{{ snippet|safe }}...</p>
+        <div class="results-container">
+          {% if results %}
+            <h3>search results for: {{ query }} </h3>
+            {% for title, author, url, snippet, page in results %}
+             <div class="result">
+                 <cite> {{ title }} by {{ author }},  page: {{ page }}</cite>
+                 <h2><a href="{{ url }}"> {{ title }} </a></h2>
+                 <p>...{{ snippet|safe }}...</p>
+             </div>
+             {% endfor %}
+   	  {% else %}
+      	    <p>No results found for: {{ query }}</p>
+   	  {% endif %}
+           <!-- More search results here... -->
+         </div>
+
+        {% if current_page %}
+        <div class="pagination justify-content-center d-flex flex-wrap">
+         <div class="py-4 px-4">
+            {% if current_page > 1 %}
+            <a href="/search?q={{ query }}&page={{ current_page - 1 }}">&laquo; Previous</a>
+            {% endif %}
+            {% for page in range(1, num_pages + 1) %}
+            {% if page == current_page %}
+            <span class="page-item">{{ page }}</span>
+            {% else %}
+              {% if page <= current_page + 5 and page >= current_page - 5 %}
+                  <a class="page-item" href="/search?q={{ query }}&page={{ page }}">{{ page }}</a>
+              {% endif %}
+            {% endif %}
+    
+            {% endfor %}
+            {% if current_page < num_pages %}
+            <a href="/search?q={{ query }}&page={{ current_page + 1 }}">Next &raquo;</a>
+            {% endif %}
           </div>
-          {% endfor %}
-	{% else %}
-   	   <p>No results found for: {{ query }}</p>
-	{% endif %}
-     
-        <!-- More search results here... -->
-    </div>
-    {% if current_page %}
-    <div class="pagination justify-content-center d-flex flex-wrap">
-     <div class="py-4 px-4">
-        {% if current_page > 1 %}
-        <a href="/search?q={{ query }}&page={{ current_page - 1 }}">&laquo; Previous</a>
+        </div>
         {% endif %}
-        {% for page in range(1, num_pages + 1) %}
-        {% if page == current_page %}
-        <span class="page-item">{{ page }}</span>
-        {% else %}
-          {% if page <= current_page + 5 and page >= current_page - 5 %}
-              <a class="page-item" href="/search?q={{ query }}&page={{ page }}">{{ page }}</a>
-          {% endif %}
-        {% endif %}
-        {% endfor %}
-        {% if current_page < num_pages %}
-        <a href="/search?q={{ query }}&page={{ current_page + 1 }}">Next &raquo;</a>
-        {% endif %}
-    </div>
-    </div>
 
-    {% endif %}
+   </div>
+ </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
