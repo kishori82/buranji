@@ -47,62 +47,11 @@ def main():
           insert_content_to_db(db, content_array)
           db.session.commit()
 
-
-def get_remote_connection():
-    # Get the database connection parameters from Flask configuration
-    host = os.environ['DATABASE_HOST']
-    port = os.environ['DATABASE_PORT']
-    user = os.environ['DATABASE_USER']
-    password = os.environ['DATABASE_PASSWORD']
-    database = os.environ['DATABASE_NAME']
-
-    # Connect to the database
-    conn = psycopg2.connect(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        database=database
-    )
-    return conn
-
-    # Create a cursor
-
 def insert_books_to_db(db, index_array):
-    #conn = sqlite3.connect(db_file)
-
-    #from models import Books
     for book_id, title, author, url, book_file_path in index_array:
         db.session.add(Books(book_id, title, author, url))
 
-        #row_insert_command = f"INSERT INTO books VALUES (?, ?, ?, ?)"
-        #conn.execute(row_insert_command, (int(book_id), title, author, url))
-
-    #conn.commit()
-    #conn.close()
-
-def insert_books_to_db_remote(index_array):
-    # Create a connection
-    conn = get_remote_connection()
-    # Create a cursor
-    cur = conn.cursor()
-
-    # Build the SQL statement to insert the data
-    books =  []
-    for book_id, title, author, url, book_file_path in index_array:
-        books.append((book_id, title, author, url))
-
-    cur.executemany("INSERT INTO books VALUES (%s, %s, %s, %s)", books)
-    conn.commit()
-
-    # Commit the transaction and close the cursor and connection
-    cur.close()
-    conn.close()
-
-
 def insert_words_to_db(db, index_array):
-    #conn = sqlite3.connect(db_file)
-
     i = 0
     for index, word, value in index_array:
         #print(index, word, value)
@@ -117,29 +66,12 @@ def insert_words_to_db(db, index_array):
 
         db.session.add(Words(index, word, value))
 
-        #row_insert_command = f"INSERT INTO words VALUES (?, ?, ?)"
-        #conn.execute(row_insert_command, (index, word, value))
-
-    #conn.commit()
-    #conn.close()
-
-
 def insert_content_to_db(db, index_array):
-    #conn = sqlite3.connect(db_file)
     for _id, index, word, value in index_array:
-
         if len(value) > 5000: 
             print("skipping excessively large page text", len(value))
             continue
-
         db.session.add(Content(_id, index, word, value))
-
-    #    row_insert_command = f"INSERT INTO content VALUES (?,  ?, ?, ?)"
-    #    conn.execute(row_insert_command, (_id, index, word, value))
-
-    #conn.commit()
-    #conn.close()
-
 
 def create_index(args):
     """
