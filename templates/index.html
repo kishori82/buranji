@@ -13,11 +13,11 @@
         }
 
         .buranji-logo {
-            width: 572px;
-            height: 192px;
+            #width: 500px;
+            #height: 192px;
             display: block;
-            margin: 40px auto 0;
             align-items: center;
+            margin: 40px auto 0;
             background-image: url('https://i.ibb.co/7Sc95PW/buranji-logo.jpg');
             background-repeat: no-repeat;
             background-size: contain;
@@ -104,19 +104,27 @@
     </style>
 </head>
 <body>
-    <div class="container text-center">
-        <div class="buranji-logo"></div>
 
-        <!-- Search Input -->
+    <div class="container">
+  <div class="justify-content-center align-items-center">
+
+    <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+      <img src="https://i.ibb.co/7Sc95PW/buranji-logo.jpg" alt="Logo" class="img-fluid mb-3">
+    </div>
+
+        <!-- Search Input --> 
+    <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
         <form id="searchForm" class="mt-4" method="POST" action="{{ url_for('search') }}">
             <div class="input-group">
                 <input type="text" class="form-control" id="searchInput" name="query" placeholder="Search" aria-label="Search">
             </div>
         </form>
+    </div>
 
-        <!-- Search Buttons -->
+    <div class="row col-md-8 col-sm-6 col-lg-10 text-center">
+        <!-- Search Buttons --> 
         <div class="search-buttons mt-3">
-            <button class="btn btn-outline-primary" type="submit" form="searchForm">Buranji Search</button>
+            <button class="btn btn-primary" type="submit" form="searchForm">Buranji Search</button>
         </div>
     </div>
 
