@@ -14,9 +14,10 @@ from pathlib import Path
 
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
-from application import create_app 
+from application import create_app
 from extensions import db
 from models import Books, Words, Content
+
 
 def main():
     """This script few txt file with book/pages and inserts the word index to the specified table"""
@@ -24,54 +25,62 @@ def main():
     book_index, word_indices, content_array = create_index(args)
 
     app = Flask(__name__)
-    if 'postgresql' in args.db_file:
-       app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    if "prod" in args.db_file:
+        app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    elif "dev" in args.db_file:
+        # Set the configuration for the app's SQLAlchemy connection
+        db_file_path = os.path.join(Path(__file__).parent.absolute(), "buranji.db")
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///{}".format(db_file_path)
     else:
-       # Set the configuration for the app's SQLAlchemy connection
-       db_file_path = os.path.join(Path(__file__).parent.absolute(), args.db_file)
-       app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(db_file_path)
+        print('specify db as either "prod" or "dev"')
+        print("exiting")
+        return
 
-    #db = SQLAlchemy(app)
+    # db = SQLAlchemy(app)
     db.init_app(app)
-   
+
     with app.app_context():
-          db.create_all()
-          db.session.commit()
-   
-          insert_books_to_db(db, book_index)
-          db.session.commit()
-   
-          insert_words_to_db(db, word_indices)
-          db.session.commit()
-   
-          insert_content_to_db(db, content_array)
-          db.session.commit()
+        db.create_all()
+        db.session.commit()
+
+        insert_books_to_db(db, book_index)
+        db.session.commit()
+
+        insert_words_to_db(db, word_indices)
+        db.session.commit()
+
+        insert_content_to_db(db, content_array)
+        db.session.commit()
+
 
 def insert_books_to_db(db, index_array):
     for book_id, title, author, url, book_file_path in index_array:
         db.session.add(Books(book_id, title, author, url))
 
+
 def insert_words_to_db(db, index_array):
     i = 0
     for index, word, value in index_array:
-        #print(index, word, value)
+        # print(index, word, value)
 
-        if len(word) > 100: 
-            print("skipping long word of length ",  len(word))
+        if len(word) > 100:
+            print("skipping long word of length ", len(word))
             continue
 
-        if len(value) > 20000: 
+        if len(value) > 20000:
             print("skipping excessively popular word", len(value))
             continue
 
         db.session.add(Words(index, word, value))
 
+
 def insert_content_to_db(db, index_array):
     for _id, index, word, value in index_array:
-        if len(value) > 5000: 
+        if len(value) > 5000:
             print("skipping excessively large page text", len(value))
             continue
         db.session.add(Content(_id, index, word, value))
+
 
 def create_index(args):
     """
@@ -84,10 +93,10 @@ def create_index(args):
     with open(args.books_info_file, encoding="utf-8") as f:
         book_info = {}
         for line in f:
-            if re.search(r'^#', line):
-               continue
+            if re.search(r"^#", line):
+                continue
             fields = [x.strip() for x in line.strip().split("\t")]
-            if fields and len(fields) == 6:
+            if fields and len(fields) == 7:
                 book_info[fields[0]] = fields[1:]
 
     book_index = []
@@ -102,12 +111,23 @@ def create_index(args):
                     book_info[book_file_base][0],
                     book_info[book_file_base][1],
                     book_info[book_file_base][2],
-                    book_file_path
+                    book_file_path,
                 )
             )
-    # books text file with info
-    book_text_files = [ (x[0], x[4])  for x in book_index ]
 
+    # list the missing txt files but are in the book-list file
+    print("books not in OCR form but present in book-list file")
+
+    book_txt_files = [ os.path.basename(book_file_path) for book_file_path in args.books ]
+
+    idx = 1
+    for book_txt in book_info:
+        if book_txt not in book_txt_files:
+            print("Not in OCR ", idx, book_txt)
+            idx += 1
+
+    # books text file with info
+    book_text_files = [(x[0], x[4]) for x in book_index]
     content_array = []
     content_id = 0
 
@@ -115,7 +135,7 @@ def create_index(args):
 
     # Open the file in read-only mode with the correct encoding
     for book_id, book_file_path in book_text_files:
-        print("book file", book_file_path)
+        print("book file", book_id, book_file_path)
 
         # Parse the XML document
         with open(book_file_path, encoding="utf-8") as f:
@@ -173,6 +193,7 @@ def create_arguments():
         "-d",
         dest="db_file",
         required=True,
+        choices = ['dev', 'prod'],
         help="the db file locally",
     )
     parser.add_argument(
@@ -181,7 +202,7 @@ def create_arguments():
         dest="books",
         nargs="+",
         required=True,
-        help="list of book files",
+        help="list of book files txt",
     )
     parser.add_argument(
         "--books-info-file",
