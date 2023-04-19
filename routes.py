@@ -7,7 +7,7 @@ from models import Books, Words, Content
 from extensions import db
 from application import create_app
 from batch_upload import batch_upload
-from utilities import substring_around, text_with_query_words
+from utilities import substring_around, text_with_query_words, page_match_score
 
 app = create_app()
 
@@ -113,16 +113,24 @@ def search():
     num_pages = len(results)//results_per_page
     #data = [ (title, text, page_no) for _, title, text, page_no in results[start_index:end_index] ]
 
-    data = []
-    for book_id, title, author, url, _, page_no in results[start_index:end_index]:  
+    _data = []
+    for book_id, title, author, url, _, page_no in results:  
        content = Content.query.filter(Content.book_id == book_id, Content.page_no==page_no).first()
        #modified_texts = []
        #for query_word in query_words:
        #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
 
        modified_texts = text_with_query_words(content.text, query_words, delta=20)
-       data.append((title, author, url, '<br>...'.join(modified_texts), page_no))
+       match_score = page_match_score(content.text, query_words)
+
+       _data.append((title, author, url, '<br>...'.join(modified_texts), page_no, match_score))
        
+    # sort by the match score in ascending
+    _data.sort(key=lambda x: x[5]) 
+
+    data = [ (x[0], x[1], x[2], x[3], x[4])  for x in _data ][start_index:end_index]
+    #data = [ (x[0], x[1], x[2], x[3], x[4])  for x in _data ]
+    #print( [ x[5]  for x in _data ])
     return render_template("index.html", query=query, num_pages=num_pages, current_page=page, results=data)
 
 

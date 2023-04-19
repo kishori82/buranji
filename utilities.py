@@ -1,3 +1,4 @@
+import sys
 
 def substring_around(s, word, around= 50):
 
@@ -43,3 +44,20 @@ def text_with_query_words(text, query_words, delta=20):
 
     return text_segments
 
+
+def page_match_score(text, query_words):
+    score = sys.maxsize
+    num_words = len(query_words)
+
+    # mark the words whether query word or not 
+    words_pos = {}
+    for idx, word  in enumerate(text.strip().split(' ')):
+       for query_word in query_words:
+          if query_word.lower()==word.lower():
+             words_pos[word.lower()] = idx         
+             if len(words_pos) == num_words:
+               idxs = sorted(list(words_pos.values()), key = lambda x: x)
+               score = idxs[-1] - idxs[0] 
+               continue
+
+    return score
