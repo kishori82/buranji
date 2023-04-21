@@ -49,6 +49,9 @@ def search():
       query = request.form["query"]
       page = 1
 
+    # Replace all occurrences of "য়" with "য়"
+    query = query.replace("য়", "য়")
+
     # Set the number of search results per page
     results_per_page = 5
 

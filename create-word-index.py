@@ -52,6 +52,35 @@ def main():
         insert_content_to_db(db, content_array)
         db.session.commit()
 
+# Define a function to replace Bengali Unicode points with their corresponding Assamese Unicode points
+def convert_to_assamese(text):
+    # Define a dictionary with Bengali and Assamese Unicode points as key-value pairs
+    unicode_map = {
+        "\u09BC": "\u0995\u09CD\u09B7",  # ়
+        "\u09C1": "\u0985\u09B2",        # ু
+        "\u09C2": "\u0985\u09CD\u09B7",  # ূ
+        "\u09C3": "\u0986\u09CD\u09AE",  # ৃ
+        "\u09C7": "\u098F",              # ে
+        "\u09C8": "\u0993",              # ৈ
+        "\u09CB": "\u0994",              # ো
+        "\u09CC": "\u0994",              # ৌ
+        "\u09CE": "\u0981",              # ঎
+        "\u09E2": "\u0981",              # ৢ
+        "\u09E3": "\u0982",              # ৣ
+    }
+    
+    # Use a regular expression to find all Bengali Unicode points in the text
+    regex = "[" + re.escape("".join(unicode_map.keys())) + "]"
+    matches = re.findall(regex, text)
+    print(matches)
+    
+    # Replace each Bengali Unicode point with its corresponding Assamese Unicode point
+    for match in matches:
+        text = text.replace(match, unicode_map[match])
+    
+    # Return the converted text
+    return text
+
 
 def insert_books_to_db(db, index_array):
     for book_id, title, author, url, book_file_path in index_array:
@@ -152,7 +181,12 @@ def create_index(args):
         for page in root:
             # Print the tag name and text content of each child element
             page_no = page.find("page_no").text.strip()
+
             raw_page_content = page.find("content").text
+
+            # Replace all occurrences of "য়" with "য়"
+            raw_page_content = raw_page_content.replace("য়", "য়")
+                  
             raw_page_content = re.sub(r"\n", " ", raw_page_content)
 
             page_content = re.sub("[" + string.punctuation + "]", "", raw_page_content)
