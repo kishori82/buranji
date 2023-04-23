@@ -120,7 +120,7 @@
         <div class="row col-md-10 col-sm-12 col-lg-12 text-center">
            <form id="searchForm" class="mt-4" method="POST" action="{{ url_for('search') }}">
                <div class="input-group">
-                   <input type="text" class="form-control" id="searchInput" name="query" placeholder="Search" aria-label="Search">
+                   <input type="text" class="form-control" id="searchInput" name="query" placeholder="   examples: জয়মতী কুঁৱৰী, বাঘ হাজৰিকা, Lachit, কছাৰী ৰাজ্য    " aria-label="Search">
                </div>
            </form>
         </div>
@@ -143,7 +143,9 @@
              </div>
              {% endfor %}
    	  {% else %}
+            {% if query %}
       	    <p>No results found for: {{ query }}</p>
+            {% endif %}
    	  {% endif %}
            <!-- More search results here... -->
          </div>
