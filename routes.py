@@ -11,6 +11,7 @@ from utilities import (
     substring_around,
     text_with_query_words,
     page_match_score,
+    equivalent_text
 )
 
 app = create_app()
@@ -62,22 +63,28 @@ def search():
 
 def _search(query, results_per_page, start_index, end_index):
     # Replace all occurrences of "য়" with "য়"
-    query = query.replace("য়", "য়")
+    query = query.replace("য়", "য়").replace("ড়", "ড়")
 
-    # split the query into words, e.g., separated by comma, space
-    query_words = set([x.strip() for x in re.split(r"[,\s]+", query) if x.strip()])
+    # split the query into equivalent words, e.g., separated by comma, space
+    query_words_equiv = set([ equivalent_text(x).strip() for x in re.split(r"[,\s]+", query) if x.strip()])
 
     words_to_bold = set()
 
     # Store the query results in an array
     query_results = []
-    # loop over individual query words
-    for query_word in query_words:
+
+    # create an empty set of query words
+    query_words = set()
+    # loop over individual query words equivalend
+    for query_word in query_words_equiv:
         # get from Word table the json
-        word_json = Words.query.filter(Words.word == query_word).first()
-        if word_json:
+        word_row = Words.query.filter(Words.word_equiv == query_word).first()
+        if word_row:
             # if there is a result/entry for the word then get the json doc and convert to python dict
-            word_index = json.loads(word_json.word_json)
+            word_index = json.loads(word_row.word_json)
+            
+            # stores
+            query_words.add(word_row.word)
         else:
             word_index = {}
 
@@ -86,19 +93,17 @@ def _search(query, results_per_page, start_index, end_index):
             # try with all suffixes
             for suffix in suffixes:
                 # extend the word
-                extended_query_word = query_word + suffix.strip()
+                extended_query_word = word_row.word + suffix.strip()
 
                 # get from Word table the json
-                word_json = Words.query.filter(
+                word_suffix_json = Words.query.filter(
                     Words.word == extended_query_word
                 ).first()
 
                 # merge the two word indices
-                if word_json:
-                    extended_word_index = json.loads(word_json.word_json)
-
+                if word_suffix_json:
+                    extended_word_index = json.loads(word_suffix_json.word_json)
                     words_to_bold.add(extended_query_word)
-
                     for book, page_array in extended_word_index.items():
                         # if book id already seen add the new page numbers, otherwise add a new entry for the book
                         if book in word_index:

@@ -1,8 +1,30 @@
 import sys
 
+__equivalent = {
+  "  ো  "  : "   ু   ", 
+  "  ূ   " :  "  ু   ",
+  "  ছ   " : "   চ ",
+  " ণ  ":  "  ন  ",
+   "  ট  "  : "   ত   ",
+   "  ঠ  "  :  "  থ   ",
+   "  ড  "  : "  দ   ",
+   "  ী  "  : "  ি   ",
+   "  স    " : "    হ   ",
+   "  ৎ  ":   "  ত "
+}
+equivalent = {key.strip(): value.strip() for key, value in __equivalent.items()}
+
+
+def equivalent_text(string):
+    for key, value in equivalent.items():
+        string = string.replace(key, value)
+    return string
+
+
 # suffixes
-_suffixes =  ["ক ", "ৰ ", "য়ে   ", " লৈ  ", "ই"] 
+_suffixes = ["ক ", "ৰ ", "য়ে   ", " লৈ  ", "ই" , " ৱে  " ]
 suffixes = [x.strip() for x in _suffixes]
+
 
 def substring_around(s, word, around=50):
     index = s.find(word)
@@ -12,6 +34,7 @@ def substring_around(s, word, around=50):
         result = s[start:end]
         return result
     return ""
+
 
 def text_with_query_words(text, query_words, delta=20):
     # mark the words whether query word or not
@@ -24,10 +47,9 @@ def text_with_query_words(text, query_words, delta=20):
                 continue
             is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word)
             if is_assamese:
-               if word.startswith(query_word) and word[len(query_word):] in suffixes:
-                  word_to_record = (f"<strong>{word}</strong>", True)
-                  continue
-
+                if word.startswith(query_word) and word[len(query_word) :] in suffixes:
+                    word_to_record = (f"<strong>{word}</strong>", True)
+                    continue
 
         words_marked.append(word_to_record)
 
