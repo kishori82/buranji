@@ -163,7 +163,7 @@ def _search(query, results_per_page, start_index, end_index):
         #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
 
         modified_texts = text_with_query_words(content.text, query_words_equiv, delta=20)
-        match_score = page_match_score(content.text, query_words)
+        match_score = page_match_score(content.text, query_words_equiv)
 
         _data.append(
             (title, author, url, "<br>...".join(modified_texts), page_no, match_score)

@@ -53,10 +53,7 @@ def text_with_query_words(text, query_words_equiv, delta=20):
                 if word_equiv.startswith(query_word_equiv) and word_equiv[len(query_word_equiv) :] in suffixes:
                     word_to_record = (f"<strong>{word}</strong>", True)
                     break
-
         words_marked.append(word_to_record)
-
-    
 
     text_segments = []
     lower = 0
@@ -78,21 +75,34 @@ def text_with_query_words(text, query_words_equiv, delta=20):
     return text_segments
 
 
-def page_match_score(text, query_words):
+def page_match_score(text, query_words_equiv):
     score = sys.maxsize
-    num_words = len(query_words)
+    num_words = len(query_words_equiv)
 
     # mark the words whether query word or not
     words_pos = {}
     for idx, word in enumerate(text.strip().split(" ")):
-        for query_word in query_words:
-            is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word)
-            if query_word.lower() == word.lower():
-                words_pos[word.lower()] = idx
+        for query_word_equiv in query_words_equiv:
+            word_equiv = equivalent_text(word)
+
+            # exact match
+            if query_word_equiv.lower() == word_equiv.lower():
+                words_pos[word_equiv.lower()] = idx
                 if len(words_pos) == num_words:
                     idxs = sorted(list(words_pos.values()), key=lambda x: x)
-                    score = idxs[-1] - idxs[0]
-                    continue
+                    if score > idxs[-1] - idxs[0]:
+                       score = idxs[-1] - idxs[0]
+                break
+
+            is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word_equiv)
+            if is_assamese:
+                if word_equiv.startswith(query_word_equiv) and word_equiv[len(query_word_equiv) :] in suffixes:
+                    words_pos[word_equiv.lower()] = idx
+                    if len(words_pos) == num_words:
+                        idxs = sorted(list(words_pos.values()), key=lambda x: x)
+                        if score > idxs[-1] - idxs[0]:
+                           score = idxs[-1] - idxs[0]
+                    break
 
     return score
 
