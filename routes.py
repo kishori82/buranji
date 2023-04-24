@@ -69,8 +69,6 @@ def _search(query, results_per_page, start_index, end_index):
     # split the query into equivalent words, e.g., separated by comma, space
     query_words_equiv = set([ equivalent_text(x).strip() for x in re.split(r"[,\s]+", query) if x.strip()])
 
-    words_to_bold = set()
-
     # Store the query results in an array
     query_results = []
 
@@ -86,7 +84,6 @@ def _search(query, results_per_page, start_index, end_index):
         for word_row in word_rows:
           # if there is a result/entry for the word then get the json doc and convert to python dict
           word_index_curr = json.loads(word_row.word_json)
-              
           # merge the word index              
           merge_word_indices(word_index, word_index_curr)
 
@@ -95,18 +92,17 @@ def _search(query, results_per_page, start_index, end_index):
             # try with all suffixes
             for suffix in suffixes:
                 # extend the word
-                extended_query_word = word_row.word + suffix.strip()
+                extended_query_word = query_word + suffix.strip()
 
                 # get from Word table the json
-                word_suffix_json = Words.query.filter(
-                    Words.word == extended_query_word
-                ).first()
+                extended_word_rows = Words.query.filter(
+                    Words.word_equiv == extended_query_word
+                ).limit(10).all()
 
                 # merge the two word indices
-                if word_suffix_json:
-                    words_to_bold.add(extended_query_word)
+                for extended_word_row in extended_word_rows:
                     # merge the two word indices
-                    extended_word_index = json.loads(word_suffix_json.word_json)
+                    extended_word_index = json.loads(extended_word_row.word_json)
                     merge_word_indices(word_index, extended_word_index)
 
         # query results for all suffixes
