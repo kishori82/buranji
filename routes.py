@@ -11,7 +11,8 @@ from utilities import (
     substring_around,
     text_with_query_words,
     page_match_score,
-    equivalent_text
+    equivalent_text,
+    merge_word_indices
 )
 
 app = create_app()
@@ -78,15 +79,16 @@ def _search(query, results_per_page, start_index, end_index):
     # loop over individual query words equivalend
     for query_word in query_words_equiv:
         # get from Word table the json
-        word_row = Words.query.filter(Words.word_equiv == query_word).first()
-        if word_row:
-            # if there is a result/entry for the word then get the json doc and convert to python dict
-            word_index = json.loads(word_row.word_json)
-            
-            # stores
-            query_words.add(word_row.word)
-        else:
-            word_index = {}
+        #word_rows = Words.query.filter(Words.word_equiv == query_word).limit(5).all()
+        word_rows = Words.query.filter(Words.word_equiv == query_word).limit(10).all()
+
+        word_index = {}
+        for word_row in word_rows:
+          # if there is a result/entry for the word then get the json doc and convert to python dict
+          word_index_curr = json.loads(word_row.word_json)
+              
+          # merge the word index              
+          merge_word_indices(word_index, word_index_curr)
 
         is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word)
         if is_assamese:
@@ -102,21 +104,13 @@ def _search(query, results_per_page, start_index, end_index):
 
                 # merge the two word indices
                 if word_suffix_json:
-                    extended_word_index = json.loads(word_suffix_json.word_json)
                     words_to_bold.add(extended_query_word)
-                    for book, page_array in extended_word_index.items():
-                        # if book id already seen add the new page numbers, otherwise add a new entry for the book
-                        if book in word_index:
-                            word_index[book] = sorted(
-                                list(set(word_index[book]).union(set(page_array))),
-                                reverse=False,
-                            )
-                        else:
-                            word_index[book] = page_array
+                    # merge the two word indices
+                    extended_word_index = json.loads(word_suffix_json.word_json)
+                    merge_word_indices(word_index, extended_word_index)
 
         # query results for all suffixes
         query_results.append(word_index)
-    # print(query_results)
 
     # find out the set of common books (use book_id) that has all the words
     common_book_ids = set()
@@ -172,7 +166,7 @@ def _search(query, results_per_page, start_index, end_index):
         # for query_word in query_words:
         #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
 
-        modified_texts = text_with_query_words(content.text, query_words, delta=20)
+        modified_texts = text_with_query_words(content.text, query_words_equiv, delta=20)
         match_score = page_match_score(content.text, query_words)
 
         _data.append(

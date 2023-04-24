@@ -36,22 +36,27 @@ def substring_around(s, word, around=50):
     return ""
 
 
-def text_with_query_words(text, query_words, delta=20):
+def text_with_query_words(text, query_words_equiv, delta=20):
     # mark the words whether query word or not
     words_marked = []
     for word in text.strip().split(" "):
         word_to_record = (word, False)
-        for query_word in query_words:
-            if query_word.lower() == word.lower():
+
+        for query_word_equiv in query_words_equiv:
+            word_equiv = equivalent_text(word)
+            if query_word_equiv.lower() == word_equiv.lower():
                 word_to_record = (f"<strong>{word}</strong>", True)
-                continue
-            is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word)
+                break
+
+            is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word_equiv)
             if is_assamese:
-                if word.startswith(query_word) and word[len(query_word) :] in suffixes:
+                if word_equiv.startswith(query_word_equiv) and word_equiv[len(query_word_equiv) :] in suffixes:
                     word_to_record = (f"<strong>{word}</strong>", True)
-                    continue
+                    break
 
         words_marked.append(word_to_record)
+
+    
 
     text_segments = []
     lower = 0
@@ -67,6 +72,8 @@ def text_with_query_words(text, query_words, delta=20):
         left, right = max(lower, i - delta), min(len(words_marked), i + delta)
         text_segments.append(" ".join([x[0] for x in words_marked[left:right]]))
         lower = right
+
+    #print(sum([True for x,y in words_marked if x]) , text_segments)
 
     return text_segments
 
@@ -88,3 +95,19 @@ def page_match_score(text, query_words):
                     continue
 
     return score
+
+
+def merge_word_indices(word_index, extended_word_index): 
+   """
+      merge extended_word_indec to word_index
+
+   """ 
+   # merge the two word indices
+   for book, page_array in extended_word_index.items():
+     # if book id already seen add the new page numbers, otherwise add a new entry for the book
+     if book in word_index:
+        word_index[book] = sorted(
+              list(set(word_index[book]).union(set(page_array))),
+              reverse=False)
+     else:
+        word_index[book] = page_array
