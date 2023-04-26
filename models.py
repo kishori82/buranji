@@ -21,11 +21,13 @@ class Words(db.Model):
     __id = db.Column(db.Integer, primary_key=True)
     id = db.Column(db.Integer)
     word = db.Column(db.String(100))
+    word_equiv = db.Column(db.String(100))
     word_json = db.Column(db.String(20000))
 
-    def __init__(self, word_id, word, word_json):
+    def __init__(self, word_id, word, word_equiv, word_json):
         self.id = word_id
         self.word = word
+        self.word_equiv = word_equiv
         self.word_json = word_json
 
 

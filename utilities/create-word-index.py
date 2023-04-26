@@ -7,16 +7,21 @@ import os
 import json
 import string
 import psycopg2
+import sys
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from pathlib import Path
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 from application import create_app
 from extensions import db
 from models import Books, Words, Content
+from utilities import equivalent_text
 
 
 def main():
@@ -89,7 +94,7 @@ def insert_books_to_db(db, index_array):
 
 def insert_words_to_db(db, index_array):
     i = 0
-    for index, word, value in index_array:
+    for index, word, word_equiv, value in index_array:
         # print(index, word, value)
 
         if len(word) > 100:
@@ -100,7 +105,7 @@ def insert_words_to_db(db, index_array):
             print("skipping excessively popular word", len(value))
             continue
 
-        db.session.add(Words(index, word, value))
+        db.session.add(Words(index, word, word_equiv,  value))
 
 
 def insert_content_to_db(db, index_array):
@@ -185,7 +190,7 @@ def create_index(args):
             raw_page_content = page.find("content").text
 
             # Replace all occurrences of "য়" with "য়"
-            raw_page_content = raw_page_content.replace("য়", "য়")
+            raw_page_content = raw_page_content.replace("য়", "য়").replace("ড়", "ড়")
                   
             raw_page_content = re.sub(r"\n", " ", raw_page_content)
 
@@ -213,7 +218,7 @@ def create_index(args):
                 word_index[word][book_id].append(int(page_no))
 
     word_indices = [
-        (idx, word, json.dumps(word_idx))
+        (idx, word, equivalent_text(word),  json.dumps(word_idx))
         for idx, (word, word_idx) in enumerate(word_index.items())
     ]
 

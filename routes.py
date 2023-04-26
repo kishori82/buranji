@@ -6,51 +6,46 @@ from flask_sqlalchemy import SQLAlchemy
 from models import Books, Words, Content
 from extensions import db
 from application import create_app
-from batch_upload import batch_upload
-from utilities import substring_around, text_with_query_words, page_match_score
+from utilities import (
+    suffixes,
+    substring_around,
+    text_with_query_words,
+    page_match_score,
+    equivalent_text,
+    merge_word_indices
+)
 
 app = create_app()
 
+
 @app.route("/")
 def index():
-    #_results = Words.query.all()
-    #names = sorted(list({result.name for result in _results if result.name}))
-    #names = []
+    # _results = Words.query.all()
+    # names = sorted(list({result.name for result in _results if result.name}))
+    # names = []
     return render_template("index.html", results=[], names=[])
 
 
-@app.route("/submit", methods=["POST"])
-def submit():
-    fname = request.form["fname"]
-    lname = request.form["lname"]
-    pet = request.form["pets"]
+@app.route("/results", methods=["GET"])
+def results():
+    # get the query
+    query = request.args.get("q", default="", type=str)
 
-    student = Books(fname, lname, pet)
-    db.session.add(student)
-    db.session.commit()
-
-    # fetch a certain student2
-    studentResult = db.session.query(Books).filter(Books.id == 1)
-    for result in studentResult:
-        print(result.fname)
-
-    return render_template("success.html", data=fname)
+    # get search results
+    num_pages, data = _search(query, 10000, 0, 10000)
+    return str(len(data))
 
 
 @app.route("/search", methods=["POST", "GET"])
 def search():
+    if request.method == "GET":
+        # Get the current page number from the query string
+        query = request.args.get("q", default="", type=str)
+        page = request.args.get("page", default=1, type=int)
 
-    if request.method=="GET":
-      # Get the current page number from the query string
-      query = request.args.get('q', default='', type=str)
-      page = request.args.get('page', default=1, type=int )
-
-    if request.method=="POST":
-      query = request.form["query"]
-      page = 1
-
-    # Replace all occurrences of "য়" with "য়"
-    query = query.replace("য়", "য়")
+    if request.method == "POST":
+        query = request.form["query"]
+        page = 1
 
     # Set the number of search results per page
     results_per_page = 5
@@ -59,88 +54,124 @@ def search():
     start_index = (page - 1) * results_per_page
     end_index = start_index + results_per_page
 
+    # get search results
+    num_pages, data = _search(query, results_per_page, start_index, end_index)
 
-    # split the query into words, e.g., separated by comma, space
-    query_words = set([ x.strip() for x in re.split(r'[,\s]+', query) if x.strip() ])
+    return render_template(
+        "index.html", query=query, num_pages=num_pages, current_page=page, results=data
+    )
+
+
+def _search(query, results_per_page, start_index, end_index):
+    # Replace all occurrences of "য়" with "য়"
+    query = query.replace("য়", "য়").replace("ড়", "ড়")
+
+    # split the query into equivalent words, e.g., separated by comma, space
+    query_words_equiv = set([ equivalent_text(x).strip() for x in re.split(r"[,\s]+", query) if x.strip()])
 
     # Store the query results in an array
     query_results = []
-    
-    # loop over individual query words
-    for query_word in query_words: 
-       # get from Word table the json 
-       word_json = Words.query.filter(Words.word == query_word).first()
-       
-       if word_json:
+
+    # create an empty set of query words
+    query_words = set()
+    # loop over individual query words equivalend
+    for query_word in query_words_equiv:
+        # get from Word table the json
+        #word_rows = Words.query.filter(Words.word_equiv == query_word).limit(5).all()
+        word_rows = Words.query.filter(Words.word_equiv == query_word).limit(10).all()
+
+        word_index = {}
+        for word_row in word_rows:
           # if there is a result/entry for the word then get the json doc and convert to python dict
-          word_index = json.loads(word_json.word_json)
-          query_results.append(word_index)
-       else:
-          query_results.append({})
+          word_index_curr = json.loads(word_row.word_json)
+          # merge the word index              
+          merge_word_indices(word_index, word_index_curr)
+
+        is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word)
+        if is_assamese:
+            # try with all suffixes
+            for suffix in suffixes:
+                # extend the word
+                extended_query_word = query_word + suffix.strip()
+
+                # get from Word table the json
+                extended_word_rows = Words.query.filter(
+                    Words.word_equiv == extended_query_word
+                ).limit(10).all()
+
+                # merge the two word indices
+                for extended_word_row in extended_word_rows:
+                    # merge the two word indices
+                    extended_word_index = json.loads(extended_word_row.word_json)
+                    merge_word_indices(word_index, extended_word_index)
+
+        # query results for all suffixes
+        query_results.append(word_index)
 
     # find out the set of common books (use book_id) that has all the words
     common_book_ids = set()
     for query_result in query_results:
-       if common_book_ids==set():
-         common_book_ids = set(list(query_result.keys()))
-       else:  # keep intersecting the page numbers for each books
-         common_book_ids = common_book_ids.intersection(set(list(query_result.keys())))
+        if common_book_ids == set():
+            common_book_ids = set(list(query_result.keys()))
+        else:  # keep intersecting the page numbers for each books
+            common_book_ids = common_book_ids.intersection(
+                set(list(query_result.keys()))
+            )
 
+    # print(common_book_ids)
     # for each books take the common pages for the words, in a book_id to set of pages
     books_pages = {}
-    
     for book_id in common_book_ids:
-      # for each book loop over each of the results 
-      for i in range(len(query_results)):
-        if book_id in query_results[i]:
-          if book_id not in books_pages:
-             books_pages[book_id] = set(query_results[i][book_id])
-          else:
-             # keep taking set intersection to find out the common pages in each of the books
-             books_pages[book_id] = books_pages[book_id].intersection(set(query_results[i][book_id]))
-          
+        # for each book loop over each of the results
+        for i in range(len(query_results)):
+            if book_id in query_results[i]:
+                if book_id not in books_pages:
+                    books_pages[book_id] = set(query_results[i][book_id])
+                else:
+                    # keep taking set intersection to find out the common pages in each of the books
+                    books_pages[book_id] = books_pages[book_id].intersection(
+                        set(query_results[i][book_id])
+                    )
+
     # now retrieve the actual book title from the Books table and select with book_id
     book_title = {}
-    for book_id in common_book_ids: 
-       book_info = Books.query.filter(Books.id == int(book_id)).first()
-       book_title[book_id] = [ re.sub("-", ' ', os.path.basename(book_info.title)), book_info.author, book_info.url ]
+    for book_id in common_book_ids:
+        book_info = Books.query.filter(Books.id == int(book_id)).first()
+        book_title[book_id] = [
+            re.sub("-", " ", os.path.basename(book_info.title)),
+            book_info.author,
+            book_info.url,
+        ]
 
-    # create the results as array of (book_id, some context text, title)  
+    # create the results as array of (book_id, some context text, title)
     results = []
     for book_id, (title, author, url) in book_title.items():
-       for page_no in books_pages[book_id]:  
-          results.append((book_id, title, author, url, "some text", page_no))
+        for page_no in books_pages[book_id]:
+            results.append((book_id, title, author, url, "some text", page_no))
+    results.sort(key=lambda x: int(x[5]))
 
-    results.sort(key = lambda x: int(x[5]))
-      
-    num_pages = len(results)//results_per_page
-    #data = [ (title, text, page_no) for _, title, text, page_no in results[start_index:end_index] ]
+    num_pages = len(results) // results_per_page
+    # data = [ (title, text, page_no) for _, title, text, page_no in results[start_index:end_index] ]
 
     _data = []
-    for book_id, title, author, url, _, page_no in results:  
-       content = Content.query.filter(Content.book_id == book_id, Content.page_no==page_no).first()
-       #modified_texts = []
-       #for query_word in query_words:
-       #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
+    for book_id, title, author, url, _, page_no in results:
+        content = Content.query.filter(
+            Content.book_id == book_id, Content.page_no == page_no
+        ).first()
+        # modified_texts = []
+        # for query_word in query_words:
+        #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
 
-       modified_texts = text_with_query_words(content.text, query_words, delta=20)
-       match_score = page_match_score(content.text, query_words)
+        modified_texts = text_with_query_words(content.text, query_words_equiv, delta=20)
+        match_score = page_match_score(content.text, query_words_equiv)
 
-       _data.append((title, author, url, '<br>...'.join(modified_texts), page_no, match_score))
-       
+        _data.append(
+            (title, author, url, "<br>...".join(modified_texts), page_no, match_score)
+        )
+
     # sort by the match score in ascending
-    _data.sort(key=lambda x: x[5]) 
+    _data.sort(key=lambda x: x[5])
 
-    data = [ (x[0], x[1], x[2], x[3], x[4])  for x in _data ][start_index:end_index]
-    #data = [ (x[0], x[1], x[2], x[3], x[4])  for x in _data ]
-    #print( [ x[5]  for x in _data ])
-    return render_template("index.html", query=query, num_pages=num_pages, current_page=page, results=data)
+    data = [(x[0], x[1], x[2], x[3], x[4]) for x in _data][start_index:end_index]
 
-
-@app.route("/upload", methods=["POST"])
-def upload_file():
-    file = request.files["file"]
-    raw_data = file.read().decode("utf-8")
-    data = [line.split(",") for line in raw_data.split("\n")]
-    batch_upload(data)
-    return f"{file.filename} File uploaded successfully!"
+    return num_pages, data
