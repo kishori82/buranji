@@ -83,6 +83,7 @@ def convert_to_assamese(text):
 
 def insert_books_to_db(db, index_array):
     for book_id, title, author, url, book_file_path in index_array:
+        print(book_id, title, author, url)
         db.session.add(Books(book_id, title, author, url))
 
 
@@ -143,16 +144,18 @@ def create_index(args):
                     book_file_path,
                 )
             )
+        else:
+            print("Missing file info ", book_file_base)
 
     # list the missing txt files but are in the book-list file
-    print("books not in OCR form but present in book-list file")
+    print("Books in book-list.tsv but no OCR of pdf file: ")
 
     book_txt_files = [ os.path.basename(book_file_path) for book_file_path in args.books ]
 
     idx = 1
     for book_txt in book_info:
         if book_txt not in book_txt_files:
-            print("Not in OCR ", idx, book_txt)
+            print("\t Not in OCR ", idx, book_txt)
             idx += 1
 
     # books text file with info
@@ -162,9 +165,10 @@ def create_index(args):
 
     word_index = {}
 
+    print("Books in book-list.tsv with OCR txt file:")
     # Open the file in read-only mode with the correct encoding
     for book_id, book_file_path in book_text_files:
-        print("book file", book_id, book_file_path)
+        print("\tbook file ", int(book_id)+1, book_file_path)
 
         # Parse the XML document
         with open(book_file_path, encoding="utf-8") as f:

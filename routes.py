@@ -108,10 +108,12 @@ def _search(query, results_per_page, start_index, end_index):
 
         # query results for all suffixes
         query_results.append(word_index)
+    
 
     # find out the set of common books (use book_id) that has all the words
     common_book_ids = set()
     for query_result in query_results:
+        #print('books', list((query_result.keys())))
         if common_book_ids == set():
             common_book_ids = set(list(query_result.keys()))
         else:  # keep intersecting the page numbers for each books
@@ -144,12 +146,14 @@ def _search(query, results_per_page, start_index, end_index):
             book_info.url,
         ]
 
+    #print(book_title)
     # create the results as array of (book_id, title, author, some context text, page_no)
     results = []
     for book_id, (title, author, url) in book_title.items():
         for page_no in books_pages[book_id]:
             word_locations = []
             for query_no, query_result in enumerate(query_results):
+                #print(book_id, type(book_id),  page_no, type(book_id))
                 word_locations.append(
                     [
                         (query_no, word_loc)
