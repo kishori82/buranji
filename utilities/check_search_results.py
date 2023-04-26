@@ -3,9 +3,8 @@ import time
 from urllib.parse import urlencode
 
 if __name__ == "__main__":
-    url = "http://127.0.0.1:5000/results"
-    # url = 'http://buranji.com/search'
-    #url = 'http://buranji.com/results'
+    #url = "http://127.0.0.1:5000/results"
+    url = 'http://buranji.com/results'
     queries = [
         " চুকাফা   ",
         "Assam,Sibsagar",

@@ -72,7 +72,6 @@ def convert_to_assamese(text):
     # Use a regular expression to find all Bengali Unicode points in the text
     regex = "[" + re.escape("".join(unicode_map.keys())) + "]"
     matches = re.findall(regex, text)
-    print(matches)
     
     # Replace each Bengali Unicode point with its corresponding Assamese Unicode point
     for match in matches:
@@ -99,6 +98,7 @@ def insert_words_to_db(db, index_array):
         if len(value) > 60000:
             print(f"skipping excessively popular word {word_equiv}", len(value))
             continue
+
 
         db.session.add(Words(index, word_equiv,  value))
 
