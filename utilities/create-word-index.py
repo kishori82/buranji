@@ -22,6 +22,7 @@ from application import create_app
 from extensions import db
 from models import Books, Words, Content
 from utilities import equivalent_text
+from stop_words import stop_words
 
 
 def main():
@@ -34,7 +35,7 @@ def main():
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
     elif "dev" in args.db_file:
         # Set the configuration for the app's SQLAlchemy connection
-        db_file_path = os.path.join(Path(__file__).parent.absolute(), "buranji.db")
+        db_file_path = os.path.join(Path(__file__).parent.absolute(), "../buranji.db")
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///{}".format(db_file_path)
     else:
         print('specify db as either "prod" or "dev"')
@@ -65,12 +66,6 @@ def convert_to_assamese(text):
         "\u09C1": "\u0985\u09B2",        # ু
         "\u09C2": "\u0985\u09CD\u09B7",  # ূ
         "\u09C3": "\u0986\u09CD\u09AE",  # ৃ
-        "\u09C7": "\u098F",              # ে
-        "\u09C8": "\u0993",              # ৈ
-        "\u09CB": "\u0994",              # ো
-        "\u09CC": "\u0994",              # ৌ
-        "\u09CE": "\u0981",              # ঎
-        "\u09E2": "\u0981",              # ৢ
         "\u09E3": "\u0982",              # ৣ
     }
     
@@ -94,18 +89,18 @@ def insert_books_to_db(db, index_array):
 
 def insert_words_to_db(db, index_array):
     i = 0
-    for index, word, word_equiv, value in index_array:
+    for index,  word_equiv, value in index_array:
         # print(index, word, value)
 
-        if len(word) > 100:
-            print("skipping long word of length ", len(word))
+        if len(word_equiv) > 100:
+            print(f"skipping long word of length {word_equiv}", len(word_equiv))
             continue
 
-        if len(value) > 20000:
-            print("skipping excessively popular word", len(value))
+        if len(value) > 60000:
+            print(f"skipping excessively popular word {word_equiv}", len(value))
             continue
 
-        db.session.add(Words(index, word, word_equiv,  value))
+        db.session.add(Words(index, word_equiv,  value))
 
 
 def insert_content_to_db(db, index_array):
@@ -185,12 +180,12 @@ def create_index(args):
         # Iterate over the child elements of the root element
         for page in root:
             # Print the tag name and text content of each child element
-            page_no = page.find("page_no").text.strip()
+            page_no = int(page.find("page_no").text.strip())
 
             raw_page_content = page.find("content").text
 
             # Replace all occurrences of "য়" with "য়"
-            raw_page_content = raw_page_content.replace("য়", "য়").replace("ড়", "ড়")
+            raw_page_content = raw_page_content.replace("য়", "য়").replace("ড়", "ড়").replace("র", "ৰ")
                   
             raw_page_content = re.sub(r"\n", " ", raw_page_content)
 
@@ -198,28 +193,30 @@ def create_index(args):
 
             # record the content
             content_id += 1
-            content_array.append((content_id, book_id, int(page_no), page_content))
+            content_array.append((content_id, book_id, page_no, page_content))
 
             # process the words in the page
-            words = set(
-                [
-                    x.strip()
-                    for x in page_content.split(" ")
+            words_equiv = [
+                    (equivalent_text(x.strip(), ignore_suffix=True), word_no)
+                    for word_no, x in enumerate(page_content.split(" "))
                     if (x and x.strip() not in stop_words)
                 ]
-            )
-            for word in words:
-                if word not in word_index:
-                    word_index[word] = {}
 
-                if book_id not in word_index[word]:
-                    word_index[word][book_id] = []
+            for word_equiv, word_no in words_equiv:
+                if word_equiv not in word_index:
+                    word_index[word_equiv] = {}
 
-                word_index[word][book_id].append(int(page_no))
+                if book_id not in word_index[word_equiv]:
+                    word_index[word_equiv][book_id] = {}
+
+                if page_no not in word_index[word_equiv][book_id]:
+                    word_index[word_equiv][book_id][page_no] = []
+
+                word_index[word_equiv][book_id][page_no].append(word_no)
 
     word_indices = [
-        (idx, word, equivalent_text(word),  json.dumps(word_idx))
-        for idx, (word, word_idx) in enumerate(word_index.items())
+        (idx, word_equiv, json.dumps(word_idx))
+        for idx, (word_equiv, word_idx) in enumerate(word_index.items())
     ]
 
     return book_index, word_indices, content_array
@@ -255,183 +252,6 @@ def create_arguments():
     return args
 
 
-stop_words = {
-    "a",
-    "about",
-    "above",
-    "after",
-    "again",
-    "against",
-    "all",
-    "am",
-    "an",
-    "and",
-    "any",
-    "are",
-    "aren't",
-    "as",
-    "at",
-    "be",
-    "because",
-    "been",
-    "before",
-    "being",
-    "below",
-    "between",
-    "both",
-    "but",
-    "by",
-    "can",
-    "can't",
-    "cannot",
-    "could",
-    "couldn't",
-    "did",
-    "didn't",
-    "do",
-    "does",
-    "doesn't",
-    "doing",
-    "don't",
-    "down",
-    "during",
-    "each",
-    "few",
-    "for",
-    "from",
-    "further",
-    "had",
-    "hadn't",
-    "has",
-    "hasn't",
-    "have",
-    "haven't",
-    "having",
-    "he",
-    "he'd",
-    "he'll",
-    "he's",
-    "her",
-    "here",
-    "here's",
-    "hers",
-    "herself",
-    "him",
-    "himself",
-    "his",
-    "how",
-    "how's",
-    "i",
-    "i'd",
-    "i'll",
-    "i'm",
-    "i've",
-    "if",
-    "in",
-    "into",
-    "is",
-    "isn't",
-    "it",
-    "it's",
-    "its",
-    "itself",
-    "let's",
-    "me",
-    "more",
-    "most",
-    "mustn't",
-    "my",
-    "myself",
-    "no",
-    "nor",
-    "not",
-    "of",
-    "off",
-    "on",
-    "once",
-    "only",
-    "or",
-    "other",
-    "ought",
-    "our",
-    "ours",
-    "ourselves",
-    "out",
-    "over",
-    "own",
-    "same",
-    "shan't",
-    "she",
-    "she'd",
-    "she'll",
-    "she's",
-    "should",
-    "shouldn't",
-    "so",
-    "some",
-    "such",
-    "than",
-    "that",
-    "that's",
-    "the",
-    "their",
-    "theirs",
-    "them",
-    "themselves",
-    "then",
-    "there",
-    "there's",
-    "these",
-    "they",
-    "they'd",
-    "they'll",
-    "they're",
-    "they've",
-    "this",
-    "those",
-    "through",
-    "to",
-    "too",
-    "under",
-    "until",
-    "up",
-    "very",
-    "was",
-    "wasn't",
-    "we",
-    "we'd",
-    "we'll",
-    "we're",
-    "we've",
-    "were",
-    "weren't",
-    "what",
-    "what's",
-    "when",
-    "when's",
-    "where",
-    "where's",
-    "which",
-    "while",
-    "who",
-    "who's",
-    "whom",
-    "why",
-    "why's",
-    "with",
-    "won't",
-    "would",
-    "wouldn't",
-    "you",
-    "you'd",
-    "you'll",
-    "you're",
-    "you've",
-    "your",
-    "yours",
-    "yourself",
-    "yourselves",
-}
 
 if __name__ == "__main__":
     main()

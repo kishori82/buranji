@@ -5,11 +5,12 @@ from urllib.parse import urlencode
 if __name__ == "__main__":
     url = "http://127.0.0.1:5000/results"
     # url = 'http://buranji.com/search'
-    # url = 'http://buranji.com/results'
+    #url = 'http://buranji.com/results'
     queries = [
         " চুকাফা   ",
         "Assam,Sibsagar",
         " জয়মতী    ",
+      "  জয়মতী কুৱঁৰী    ",
         "কছাৰী ৰাজ্য  ",
         " নৰা ৰাজ্য  ",
         "   মোলা গাভৰু   ",

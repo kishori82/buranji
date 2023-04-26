@@ -14,16 +14,34 @@ __equivalent = {
 }
 equivalent = {key.strip(): value.strip() for key, value in __equivalent.items()}
 
-
-def equivalent_text(string):
-    for key, value in equivalent.items():
-        string = string.replace(key, value)
-    return string
-
-
 # suffixes
 _suffixes = ["ক ", "ৰ ", "য়ে   ", " লৈ  ", "ই" , " ৱে  " ]
 suffixes = [x.strip() for x in _suffixes]
+
+
+def equivalent_text(string, ignore_suffix=False):
+    for key, value in equivalent.items():
+        string = string.replace(key, value)
+
+    if ignore_suffix:
+       for suffix in suffixes:
+          if string.endswith(suffix):
+              return string[:-len(suffix)] 
+
+    return string
+
+def are_similar(string1, string2, ignore_suffix=False):
+    
+    if string1.lower()==string2.lower():
+       return True
+
+    if ignore_suffix:
+        if len(string1) > len(string2):
+           return string1[len(string2):] in suffixes
+        elif len(string1) < len(string2):
+           return string2[len(string1):] in suffixes
+
+    return False
 
 
 def substring_around(s, word, around=50):
@@ -74,6 +92,25 @@ def text_with_query_words(text, query_words_equiv, delta=20):
 
     return text_segments
 
+
+def page_match_score_v2(word_loc_arrays):
+    score = sys.maxsize
+    num_words = len(word_loc_arrays)
+    
+    all_word_locs = []
+    for word_loc_array in word_loc_arrays:
+       all_word_locs += word_loc_array
+    all_word_locs.sort(key=lambda x: x[1])
+
+    words_pos = {}
+    for word_loc in all_word_locs:
+        words_pos[word_loc[0]] = word_loc[1]
+        if len(words_pos) == num_words:
+           idxs = sorted(list(words_pos.values()), reverse=False)
+           if score > idxs[-1] - idxs[0]:
+              score = idxs[-1] - idxs[0]
+
+    return score
 
 def page_match_score(text, query_words_equiv):
     score = sys.maxsize

@@ -11,6 +11,7 @@ from utilities import (
     substring_around,
     text_with_query_words,
     page_match_score,
+    page_match_score_v2,
     equivalent_text,
     merge_word_indices
 )
@@ -67,7 +68,7 @@ def _search(query, results_per_page, start_index, end_index):
     query = query.replace("য়", "য়").replace("ড়", "ড়")
 
     # split the query into equivalent words, e.g., separated by comma, space
-    query_words_equiv = set([ equivalent_text(x).strip() for x in re.split(r"[,\s]+", query) if x.strip()])
+    query_words_equiv = set([ equivalent_text(x, ignore_suffix=True).strip() for x in re.split(r"[,\s]+", query) if x.strip()])
 
     # Store the query results in an array
     query_results = []
@@ -78,32 +79,13 @@ def _search(query, results_per_page, start_index, end_index):
     for query_word in query_words_equiv:
         # get from Word table the json
         #word_rows = Words.query.filter(Words.word_equiv == query_word).limit(5).all()
-        word_rows = Words.query.filter(Words.word_equiv == query_word).limit(10).all()
+        word_row = Words.query.filter(Words.word_equiv == query_word).first()
 
         word_index = {}
-        for word_row in word_rows:
-          # if there is a result/entry for the word then get the json doc and convert to python dict
-          word_index_curr = json.loads(word_row.word_json)
-          # merge the word index              
-          merge_word_indices(word_index, word_index_curr)
-
-        is_assamese = all(0x0980 <= ord(c) <= 0x09FF for c in query_word)
-        if is_assamese:
-            # try with all suffixes
-            for suffix in suffixes:
-                # extend the word
-                extended_query_word = query_word + suffix.strip()
-
-                # get from Word table the json
-                extended_word_rows = Words.query.filter(
-                    Words.word_equiv == extended_query_word
-                ).limit(10).all()
-
-                # merge the two word indices
-                for extended_word_row in extended_word_rows:
-                    # merge the two word indices
-                    extended_word_index = json.loads(extended_word_row.word_json)
-                    merge_word_indices(word_index, extended_word_index)
+        
+        if word_row:
+           # if there is a result/entry for the word then get the json doc and convert to python dict
+           word_index = json.loads(word_row.word_json)
 
         # query results for all suffixes
         query_results.append(word_index)
@@ -122,15 +104,15 @@ def _search(query, results_per_page, start_index, end_index):
     # for each books take the common pages for the words, in a book_id to set of pages
     books_pages = {}
     for book_id in common_book_ids:
-        # for each book loop over each of the results
+        # for each book loop over each of the results, num distinct words
         for i in range(len(query_results)):
             if book_id in query_results[i]:
                 if book_id not in books_pages:
-                    books_pages[book_id] = set(query_results[i][book_id])
+                    books_pages[book_id] = set(query_results[i][book_id].keys())
                 else:
                     # keep taking set intersection to find out the common pages in each of the books
                     books_pages[book_id] = books_pages[book_id].intersection(
-                        set(query_results[i][book_id])
+                        set( query_results[i][book_id].keys() )
                     )
 
     # now retrieve the actual book title from the Books table and select with book_id
@@ -143,18 +125,24 @@ def _search(query, results_per_page, start_index, end_index):
             book_info.url,
         ]
 
-    # create the results as array of (book_id, some context text, title)
+    # create the results as array of (book_id, title, author, some context text, page_no)
     results = []
     for book_id, (title, author, url) in book_title.items():
         for page_no in books_pages[book_id]:
-            results.append((book_id, title, author, url, "some text", page_no))
-    results.sort(key=lambda x: int(x[5]))
+            word_locations = []
+            for query_no, query_result in enumerate(query_results):
+                word_locations.append([(query_no, word_loc) for word_loc in query_result[book_id][page_no]] )
+
+                #print(page_no, query_result[book_id][page_no])
+            page_score = page_match_score_v2(word_locations)
+            results.append((book_id, title, author, url, "some text", page_no, page_score))
+    results.sort(key=lambda x: int(x[6]), reverse=False)
 
     num_pages = len(results) // results_per_page
     # data = [ (title, text, page_no) for _, title, text, page_no in results[start_index:end_index] ]
 
-    _data = []
-    for book_id, title, author, url, _, page_no in results:
+    data = []
+    for book_id, title, author, url, _, page_no, page_score in results[start_index:end_index]:
         content = Content.query.filter(
             Content.book_id == book_id, Content.page_no == page_no
         ).first()
@@ -163,15 +151,15 @@ def _search(query, results_per_page, start_index, end_index):
         #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
 
         modified_texts = text_with_query_words(content.text, query_words_equiv, delta=20)
-        match_score = page_match_score(content.text, query_words_equiv)
+        #match_score = page_match_score(content.text, query_words_equiv)
 
-        _data.append(
-            (title, author, url, "<br>...".join(modified_texts), page_no, match_score)
+        data.append(
+            (title, author, url, "<br>...".join(modified_texts), page_no)
         )
 
     # sort by the match score in ascending
-    _data.sort(key=lambda x: x[5])
+    #_data.sort(key=lambda x: x[5])
 
-    data = [(x[0], x[1], x[2], x[3], x[4]) for x in _data][start_index:end_index]
+    #data = [(x[0], x[1], x[2], x[3], x[4]) for x in _data]
 
     return num_pages, data
