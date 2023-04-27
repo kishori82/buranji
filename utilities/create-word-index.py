@@ -14,7 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from pathlib import Path
 
 # Add the parent directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
@@ -58,25 +58,26 @@ def main():
         insert_content_to_db(db, content_array)
         db.session.commit()
 
+
 # Define a function to replace Bengali Unicode points with their corresponding Assamese Unicode points
 def convert_to_assamese(text):
     # Define a dictionary with Bengali and Assamese Unicode points as key-value pairs
     unicode_map = {
         "\u09BC": "\u0995\u09CD\u09B7",  # ়
-        "\u09C1": "\u0985\u09B2",        # ু
+        "\u09C1": "\u0985\u09B2",  # ু
         "\u09C2": "\u0985\u09CD\u09B7",  # ূ
         "\u09C3": "\u0986\u09CD\u09AE",  # ৃ
-        "\u09E3": "\u0982",              # ৣ
+        "\u09E3": "\u0982",  # ৣ
     }
-    
+
     # Use a regular expression to find all Bengali Unicode points in the text
     regex = "[" + re.escape("".join(unicode_map.keys())) + "]"
     matches = re.findall(regex, text)
-    
+
     # Replace each Bengali Unicode point with its corresponding Assamese Unicode point
     for match in matches:
         text = text.replace(match, unicode_map[match])
-    
+
     # Return the converted text
     return text
 
@@ -89,7 +90,7 @@ def insert_books_to_db(db, index_array):
 
 def insert_words_to_db(db, index_array):
     i = 0
-    for index,  word_equiv, value in index_array:
+    for index, word_equiv, value in index_array:
         # print(index, word, value)
 
         if len(word_equiv) > 100:
@@ -100,8 +101,7 @@ def insert_words_to_db(db, index_array):
             print(f"skipping excessively popular word {word_equiv}", len(value))
             continue
 
-
-        db.session.add(Words(index, word_equiv,  value))
+        db.session.add(Words(index, word_equiv, value))
 
 
 def insert_content_to_db(db, index_array):
@@ -150,7 +150,7 @@ def create_index(args):
     # list the missing txt files but are in the book-list file
     print("Books in book-list.tsv but no OCR of pdf file: ")
 
-    book_txt_files = [ os.path.basename(book_file_path) for book_file_path in args.books ]
+    book_txt_files = [os.path.basename(book_file_path) for book_file_path in args.books]
 
     idx = 1
     for book_txt in book_info:
@@ -168,7 +168,7 @@ def create_index(args):
     print("Books in book-list.tsv with OCR txt file:")
     # Open the file in read-only mode with the correct encoding
     for book_id, book_file_path in book_text_files:
-        print("\tbook file ", int(book_id)+1, book_file_path)
+        print("\tbook file ", int(book_id) + 1, book_file_path)
 
         # Parse the XML document
         with open(book_file_path, encoding="utf-8") as f:
@@ -189,8 +189,15 @@ def create_index(args):
             raw_page_content = page.find("content").text
 
             # Replace all occurrences of "য়" with "য়"
-            raw_page_content = raw_page_content.replace("য়", "য়").replace("ড়", "ড়").replace("র", "ৰ")
-                  
+            # raw_page_content = raw_page_content.replace("য়", "য়").replace("ড়", "ড়").replace("র", "ৰ")
+
+            raw_page_content = (
+                raw_page_content.replace("য়", "য়")
+                .replace("ড়", "ড়")
+                .replace("র", "ৰ")
+                .replace("ঢ়", "ঢ়")
+            )
+
             raw_page_content = re.sub(r"\n", " ", raw_page_content)
 
             page_content = re.sub("[" + string.punctuation + "]", "", raw_page_content)
@@ -201,10 +208,10 @@ def create_index(args):
 
             # process the words in the page
             words_equiv = [
-                    (equivalent_text(x.strip(), ignore_suffix=True), word_no)
-                    for word_no, x in enumerate(page_content.split(" "))
-                    if (x and x.strip() not in stop_words)
-                ]
+                (equivalent_text(x.strip(), ignore_suffix=True), word_no)
+                for word_no, x in enumerate(page_content.split(" "))
+                if (x and x.strip() not in stop_words)
+            ]
 
             for word_equiv, word_no in words_equiv:
                 if word_equiv not in word_index:
@@ -233,7 +240,7 @@ def create_arguments():
         "-d",
         dest="db_file",
         required=True,
-        choices = ['dev', 'prod'],
+        choices=["dev", "prod"],
         help="the db file locally",
     )
     parser.add_argument(
@@ -254,7 +261,6 @@ def create_arguments():
 
     args = parser.parse_args()
     return args
-
 
 
 if __name__ == "__main__":

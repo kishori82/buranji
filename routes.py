@@ -84,7 +84,16 @@ def search():
 
 def _search(query, results_per_page, start_index, end_index):
     # Replace all occurrences of "য়" with "য়"
-    query = query.replace("য়", "য়").replace("ড়", "ড়")
+    #query = query.replace("য়", "য়").replace("ড়", "ড়")
+    query = (
+                query.replace("য়", "য়")
+                .replace("ড়", "ড়")
+                .replace("র", "ৰ")
+                .replace("ঢ়", "ঢ়")
+            )
+
+
+
 
     # split the query into equivalent words, e.g., separated by comma, space
     query_words_equiv = set(
@@ -193,7 +202,7 @@ def _search(query, results_per_page, start_index, end_index):
         )
         # match_score = page_match_score(content.text, query_words_equiv)
 
-        data.append((title, author, url, "<br>...".join(modified_texts), page_no))
+        data.append((title, author, url, "...<br><br>...".join(modified_texts), page_no))
 
     # sort by the match score in ascending
     # _data.sort(key=lambda x: x[5])
