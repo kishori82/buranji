@@ -126,7 +126,7 @@ def create_index(args):
             if re.search(r"^#", line):
                 continue
             fields = [x.strip() for x in line.strip().split("\t")]
-            if fields and len(fields) == 7:
+            if fields and len(fields) >= 7:
                 book_info[fields[0]] = fields[1:]
 
     book_index = []

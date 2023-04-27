@@ -39,6 +39,12 @@ def references():
     # render the list of references
     return render_template("references.html", references=references)
 
+@app.route("/team", methods=["GET"])
+def team():
+    # render the list of team members
+    return render_template("team.html")
+
+
 
 @app.route("/results", methods=["GET"])
 def results():
