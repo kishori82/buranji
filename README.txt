@@ -3,10 +3,10 @@
 https://youtu.be/IBfj_0Zf2Mo
 
 # load data into the db
-python create-word-index.py --db-file dev --books /home/kishori/Lacit/API_vision_google/books/text/*.english.txt
+python create-word-index.py --db-file dev --books /home/kishori/Lacit/ocr-project/books/text/*.english.txt
 
-python create-word-index.py --db-file dev --books ../API_vision_google/books/text/*.txt
-python create-word-index.py --db-file dev --books ../API_vision_google/books/text/*.txt --books-info-file book-list.tsv
+python create-word-index.py --db-file dev --books ../ocr-project/books/text/*.txt
+python create-word-index.py --db-file dev --books ../ocr-project/books/text/*.txt --books-info-file book-list.tsv
 
 
 # clear data: locally by deleting the db on render by connecting to the db 
@@ -21,5 +21,5 @@ rm buranji.db
 flask --app=run.py run
 
 
-# orc
-python ../API_vision_google/utilities/ocr-with-google.py --pdf-input ../API_vision_google/books/pdfs/bara-bhuyan-nakul_chandra_bhuyan-assamese.pdf --output ../API_vision_google/books/text/bara-bhuyan-nakul_chandra_bhuyan-assamese.txt --language as --pickle-folder ../API_vision_google/tmp-pickle/ --page-range-pdf 11,39
+# ocr pdf copies
+python utilities/ocr-with-google.py --pdf-input ../ocr-project/books/pdfs/bara-bhuyan-nakul_chandra_bhuyan-assamese.pdf --output ../ocr-project/books/text/bara-bhuyan-nakul_chandra_bhuyan-assamese.txt --language as --pickle-folder ../ocr-project/tmp-pickle/ --page-range-pdf 11,39
