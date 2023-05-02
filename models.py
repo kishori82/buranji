@@ -9,7 +9,7 @@ class Books(db.Model):
     author = db.Column(db.String(100))
     url = db.Column(db.String(400))
 
-    def __init__(self, book_id,  title, author, url):
+    def __init__(self, book_id, title, author, url):
         self.id = book_id
         self.title = title
         self.author = author

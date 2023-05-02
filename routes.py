@@ -21,9 +21,6 @@ app = create_app()
 
 @app.route("/")
 def index():
-    # _results = Words.query.all()
-    # names = sorted(list({result.name for result in _results if result.name}))
-    # names = []
     return render_template("index.html", results=[], names=[])
 
 
@@ -32,18 +29,27 @@ def references():
     # get the books
     books_info = Books.query.order_by(Books.id).all()
 
-    references = [] 
+    references = []
     for num, book_info in enumerate(books_info):
-        references.append( (num+1, book_info.title, book_info.author, "To be added", "To be added", book_info.url) )
+        references.append(
+            (
+                num + 1,
+                book_info.title,
+                book_info.author,
+                "To be added",
+                "To be added",
+                book_info.url,
+            )
+        )
 
     # render the list of references
     return render_template("references.html", references=references)
+
 
 @app.route("/team", methods=["GET"])
 def team():
     # render the list of team members
     return render_template("team.html")
-
 
 
 @app.route("/results", methods=["GET"])
@@ -84,16 +90,10 @@ def search():
 
 def _search(query, results_per_page, start_index, end_index):
     # Replace all occurrences of "য়" with "য়"
-    #query = query.replace("য়", "য়").replace("ড়", "ড়")
+    # query = query.replace("য়", "য়").replace("ড়", "ড়")
     query = (
-                query.replace("য়", "য়")
-                .replace("ড়", "ড়")
-                .replace("র", "ৰ")
-                .replace("ঢ়", "ঢ়")
-            )
-
-
-
+        query.replace("য়", "য়").replace("ড়", "ড়").replace("র", "ৰ").replace("ঢ়", "ঢ়")
+    )
 
     # split the query into equivalent words, e.g., separated by comma, space
     query_words_equiv = set(
@@ -123,12 +123,11 @@ def _search(query, results_per_page, start_index, end_index):
 
         # query results for all suffixes
         query_results.append(word_index)
-    
 
     # find out the set of common books (use book_id) that has all the words
     common_book_ids = set()
     for query_result in query_results:
-        #print('books', list((query_result.keys())))
+        # print('books', list((query_result.keys())))
         if common_book_ids == set():
             common_book_ids = set(list(query_result.keys()))
         else:  # keep intersecting the page numbers for each books
@@ -161,14 +160,14 @@ def _search(query, results_per_page, start_index, end_index):
             book_info.url,
         ]
 
-    #print(book_title)
+    # print(book_title)
     # create the results as array of (book_id, title, author, some context text, page_no)
     results = []
     for book_id, (title, author, url) in book_title.items():
         for page_no in books_pages[book_id]:
             word_locations = []
             for query_no, query_result in enumerate(query_results):
-                #print(book_id, type(book_id),  page_no, type(book_id))
+                # print(book_id, type(book_id),  page_no, type(book_id))
                 word_locations.append(
                     [
                         (query_no, word_loc)
@@ -184,7 +183,6 @@ def _search(query, results_per_page, start_index, end_index):
     results.sort(key=lambda x: int(x[6]), reverse=False)
 
     num_pages = len(results) // results_per_page
-    # data = [ (title, text, page_no) for _, title, text, page_no in results[start_index:end_index] ]
 
     data = []
     for book_id, title, author, url, _, page_no, page_score in results[
@@ -193,20 +191,14 @@ def _search(query, results_per_page, start_index, end_index):
         content = Content.query.filter(
             Content.book_id == book_id, Content.page_no == page_no
         ).first()
-        # modified_texts = []
-        # for query_word in query_words:
-        #   modified_texts.append(re.sub(query_word, f"<strong>{query_word}</strong> ",  substring_around(content.text, query_word, around=150)))
 
         modified_texts = text_with_query_words(
             content.text, query_words_equiv, delta=20
         )
         # match_score = page_match_score(content.text, query_words_equiv)
 
-        data.append((title, author, url, "...<br><br>...".join(modified_texts), page_no))
-
-    # sort by the match score in ascending
-    # _data.sort(key=lambda x: x[5])
-
-    # data = [(x[0], x[1], x[2], x[3], x[4]) for x in _data]
+        data.append(
+            (title, author, url, "...<br><br>...".join(modified_texts), page_no)
+        )
 
     return num_pages, data
