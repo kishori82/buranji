@@ -50,12 +50,15 @@ def main():
         db.session.commit()
 
         insert_books_to_db(db, book_index)
+        print(f"INFO: INSERTED THE BOOKS")
         db.session.commit()
 
         insert_words_to_db(db, word_indices)
+        print(f"INFO: INSERTED THE WORDS")
         db.session.commit()
 
         insert_content_to_db(db, content_array)
+        print(f"INFO: INSERTED THE CONTENTS")
         db.session.commit()
 
 

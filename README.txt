@@ -1,11 +1,23 @@
+#How to upload a new db
+# cd buranji where you see the utilities folder
+cd buranji 
+
+# make sure you load the shell variables by executing
+source ../env_variables.sh
+
+# if you want to create the file buranji.db file locally/remote then 
+python utilities/create-word-index.py --db-file dev/prod --books ../ocr-project/books/text/*.txt --books-info-file book-list.tsv
+
 
 # youtube
 https://youtu.be/IBfj_0Zf2Mo
 
 # load data into the db
 python create-word-index.py --db-file dev --books /home/kishori/Lacit/ocr-project/books/text/*.english.txt
-
 python create-word-index.py --db-file dev --books ../ocr-project/books/text/*.txt
+
+
+# load the books into the db
 python create-word-index.py --db-file dev --books ../ocr-project/books/text/*.txt --books-info-file book-list.tsv
 
 
