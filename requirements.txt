@@ -13,7 +13,6 @@ packaging==23.0
 pathspec==0.11.0
 platformdirs==3.1.0
 psycopg2-binary==2.9.5
-pyscopg2==66.0.2
 SQLAlchemy==2.0.4
 tomli==2.0.1
 typing-extensions==4.5.0
