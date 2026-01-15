@@ -35,3 +35,22 @@ flask --app=run.py run
 
 # ocr pdf copies
 python utilities/ocr-with-google.py --pdf-input ../ocr-project/books/pdfs/bara-bhuyan-nakul_chandra_bhuyan-assamese.pdf --output ../ocr-project/books/text/bara-bhuyan-nakul_chandra_bhuyan-assamese.txt --language as --pickle-folder ../ocr-project/tmp-pickle/ --page-range-pdf 11,39
+
+
+# db installation postgres locally
+
+# sudo -u postgres psql
+
+root@buranji:~/buranji# sudo -u postgres psql
+CREATE DATABASE buranjidb;
+CREATE USER buranji WITH PASSWORD 'buranji';
+GRANT ALL PRIVILEGES ON DATABASE buranjidb TO buranji;
+
+sudo -u postgres psql -d buranjidb
+GRANT ALL ON SCHEMA public TO myuser; q\
+
+flask --app=run.py shell
+from application import db
+db.create_all()
+
+pip install gunicorn

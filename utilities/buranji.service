@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve buranji
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/root/buranji/buranji
+Environment="PATH=/home/root/buranji/buranjivenv/bin"
+ExecStart=/home/root/buranji/buranji/venv/bin/gunicorn --workers 3 --bind unix:myproject.sock -m 007 routes:app
+
+[Install]
+WantedBy=multi-user.target
