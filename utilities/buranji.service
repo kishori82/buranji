@@ -5,9 +5,16 @@ After=network.target
 [Service]
 User=root
 Group=www-data
-WorkingDirectory=/home/root/buranji/buranji
-Environment="PATH=/home/root/buranji/buranjivenv/bin"
-ExecStart=/home/root/buranji/buranji/venv/bin/gunicorn --workers 3 --bind unix:myproject.sock -m 007 routes:app
+WorkingDirectory=/root/buranji/buranji
+Environment="PATH=/root/buranji/buranji/buranjivenv/bin"
+Environment="SQLALCHEMY_DATABASE_URI=postgresql://buranji:buranji@localhost:5432/buranjidb"
+Environment="SECRET_HOST=localhost"
+Environment="DATABASE_PORT=5432"
+Environment="DATABASE_USER=buranji"
+Environment="DATABASE_PASSWORD=buranji"
+Environment="DATABASE_URL=postgresql://buranji:buranji@localhost:5432/buranjidb"
+
+ExecStart=/root/buranji/buranji/buranjivenv/bin/gunicorn --workers 3 --bind unix:/run/buranji.sock -m 007 routes:app
 
 [Install]
 WantedBy=multi-user.target
