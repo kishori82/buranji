@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilingual Book: English & Assamese</title>
+    <link rel="stylesheet" href="book.css">
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>Page</h2>
+        <div id="page-links"></div>
+    </div>
+
+    <div id="main-wrapper">
+        <div id="top-bar">
+            <div class="toggle-container">
+                <button id="btn-en" class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                <button id="btn-as" class="lang-btn" onclick="setLanguage('as')">AS</button>
+            </div>
+        </div>
+
+        <div id="content-container">
+            <div id="page-content">
+                <h1 id="page-title"></h1>
+                <div id="page-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="book.js"></script>
+</body>
+</html>
