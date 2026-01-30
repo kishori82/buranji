@@ -1,7 +1,6 @@
 body {
     margin: 0;
     font-family: 'Segoe UI', Arial, sans-serif;
-    display: flex;
     height: 100vh;
     background-color: #f4f4f9;
 }
@@ -19,6 +18,16 @@ body {
     flex-direction: column;
     border-right: 1px solid #ddd;
     overflow-y: auto;
+}
+
+#reader-view {
+    display: flex;
+    height: 100vh;
+}
+
+#book-list-view {
+    height: 100vh;
+    padding: 24px;
 }
 
 #sidebar h2 {
@@ -55,7 +64,8 @@ body {
     background: white;
     padding: 10px 40px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     border-bottom: 1px solid #ddd;
 }
 
