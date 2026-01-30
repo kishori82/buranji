@@ -98,12 +98,36 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     line-height: 1.8;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#page-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 16px;
+}
+
+#page-number {
+    color: #2c3e50;
+    opacity: 0.75;
+}
+
+#page-title {
+    text-align: center;
+    flex: 1;
+    margin: 0;
+    font-weight: normal;
 }
 
 #page-body {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* Assamese text sometimes needs a slightly larger font size for readability */

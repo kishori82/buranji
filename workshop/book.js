@@ -3,6 +3,36 @@ let bookData = null;
 let currentPage = 1;
 let currentLang = 'en';
 
+async function loadBookDataWindow(referencePage) {
+    const res = await fetch(`/api/book-data?reference_page=${encodeURIComponent(referencePage)}`);
+    if (!res.ok) {
+        throw new Error(`Failed to load book data: ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (!bookData) {
+        bookData = data;
+        return;
+    }
+
+    Object.keys(data).forEach((pageNo) => {
+        const incomingEn = data[pageNo]?.en;
+        const incomingAs = data[pageNo]?.as;
+
+        if (!bookData[pageNo]) {
+            bookData[pageNo] = data[pageNo];
+            return;
+        }
+
+        if (incomingEn && incomingEn.body != null) {
+            bookData[pageNo].en = incomingEn;
+        }
+        if (incomingAs && incomingAs.body != null) {
+            bookData[pageNo].as = incomingAs;
+        }
+    });
+}
+
 function updateSidebarActiveState() {
     const links = document.querySelectorAll('.page-link');
     links.forEach(link => {
@@ -35,8 +65,14 @@ function renderSidebar() {
     updateSidebarActiveState();
 }
 
-function setPage(num) {
+async function setPage(num) {
     currentPage = num;
+
+    const current = bookData?.[currentPage]?.[currentLang];
+    if (!current || current.body == null) {
+        await loadBookDataWindow(currentPage);
+    }
+
     updateDisplay();
 
     updateSidebarActiveState();
@@ -58,10 +94,14 @@ function updateDisplay() {
     }
 
     const data = bookData[currentPage][currentLang];
+    const pageNumberEl = document.getElementById('page-number');
     const titleEl = document.getElementById('page-title');
     const bodyEl = document.getElementById('page-body');
 
-    titleEl.innerText = data.pageno;
+    if (pageNumberEl) {
+        pageNumberEl.innerText = `${data.pageno}`;
+    }
+    titleEl.innerText = data.title;
     bodyEl.innerText = data.body;
 
     // Apply special class for Assamese to improve readability
@@ -75,15 +115,7 @@ function updateDisplay() {
 }
 
 async function init() {
-    const res = await fetch('/api/book-data');
-    if (!res.ok) {
-        throw new Error(`Failed to load book data: ${res.status}`);
-    }
-
-    const data = await res.json();
-    bookData = data;
-    console.log("bookData:", bookData);
-    console.log("bookData JSON:", JSON.stringify(bookData, null, 2)); // pretty print
+    await loadBookDataWindow(currentPage);
 
     renderSidebar();
     updateDisplay();
