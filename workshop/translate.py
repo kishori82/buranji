@@ -2,7 +2,9 @@ import xml.etree.ElementTree as ET
 import argparse
 import sys
 
-def translate_to_english(text, client):
+def translate_to_english(text):
+    from google.cloud import translate_v2 as translate
+    client = translate.Client()
     result = client.translate(text, target_language='en', source_language='as')
     return result['translatedText']
 
@@ -10,7 +12,7 @@ def translate_to_assamese(text):
     from google.cloud import translate_v2 as translate
 
     client = translate.Client()
-    result = client.translate(text, target_language='as')
+    result = client.translate(text, target_language='as', source_language='en')
     return result['translatedText']
 
 
@@ -83,7 +85,8 @@ def main(argv=None):
             continue
 
         original_text = "".join(content_el.itertext()).strip()
-        translated_text = translate_to_assamese(original_text)
+        #translated_text = translate_to_assamese(original_text)
+        translated_text = translate_to_english(original_text)
 
         content_el.text = translated_text
 

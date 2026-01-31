@@ -32,7 +32,7 @@ def get_book_by_id(book_id: str):
 
 
 def load_books_list_from_tsv(tsv_path: str):
-    path_prefix = "../../ocr-project/books/text/"
+    path_prefix = "books/"
 
     with open(tsv_path, encoding="utf-8") as f:
         book_info = {}
@@ -51,14 +51,16 @@ def load_books_list_from_tsv(tsv_path: str):
     books_for_reader = []
     idx = 1
     for filename, fields in book_info.items():
-        title = fields[1] if len(fields) > 1 else ""
-        author = fields[2] if len(fields) > 2 else ""
-        url = fields[3] if len(fields) > 3 else ""
-        publisher = fields[7] if len(fields) > 7 else ""
+        title = fields[3] if len(fields) > 3 else ""
+        author = fields[4] if len(fields) > 4 else ""
+        url = fields[5] if len(fields) > 5 else ""
+        publisher = fields[9] if len(fields) > 9 else ""
 
         # Treat filename as the primary id in the system.
         # (The frontend will navigate using this value as book_id.)
         book_id = filename
+        assamese_filename = fields[0]
+        english_filename = fields[1]
 
         books.append({
             "num": idx,
@@ -70,11 +72,12 @@ def load_books_list_from_tsv(tsv_path: str):
             "url": url,
         })
 
+        print(filename)
         books_for_reader.append({
             "id": book_id,
             "title": title,
-            "en_xml_path": f"{path_prefix}{filename}",
-            "as_xml_path": f"{path_prefix}{filename}",
+            "en_xml_path": f"{path_prefix}{english_filename}",
+            "as_xml_path": f"{path_prefix}{assamese_filename}",
         })
         idx += 1
 
@@ -179,7 +182,7 @@ def api_book_data():
         return jsonify({"error": "Missing required query param: book_id"}), 400
 
     # Ensure BOOKS has been loaded from TSV (so the reader can open any TSV entry).
-    get_cached_books_list("../book-list.tsv")
+    get_cached_books_list("books/assamese-english-book-list.tsv")
 
     book = get_book_by_id(book_id)
     if book is None:
@@ -194,7 +197,7 @@ def api_book_data():
 
 @app.get("/api/books")
 def api_books():
-    books_info_file = "../book-list.tsv"
+    books_info_file = "books/assamese-english-book-list.tsv"
     return jsonify(get_cached_books_list(books_info_file))
 
 @app.get("/<path:filename>")
