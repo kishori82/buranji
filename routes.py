@@ -79,7 +79,9 @@ def load_books_list_from_tsv(tsv_path: str):
     # This is the shape used by GET /api/book-data (used by get_book_by_id).
     books_for_reader = []
     idx = 1
-    for filename, fields in book_info.items():
+
+    # book_id is also the base filename 
+    for _, fields in book_info.items():
         title = fields[3] if len(fields) > 3 else ""
         author = fields[4] if len(fields) > 4 else ""
         url = fields[5] if len(fields) > 5 else ""
@@ -87,28 +89,45 @@ def load_books_list_from_tsv(tsv_path: str):
 
         # Treat filename as the primary id in the system.
         # (The frontend will navigate using this value as book_id.)
-        book_id = filename
         assamese_filename = fields[0]
         english_filename = fields[1]
 
         books.append({
             "num": idx,
-            "id": filename,
-            "book_id": book_id,
-            "title": title,
+            "id": assamese_filename,
+            "book_id": assamese_filename,
+            "title": title + (" - translated"  if "to-assamese" in assamese_filename else ""),
             "author": author,
             "publisher": publisher,
             "url": url,
         })
 
         books_for_reader.append({
-            "id": book_id,
-            "title": title,
+            "id": assamese_filename,
+            "title": title + (" - translated"  if "to-assamese" in assamese_filename else ""),
             "en_xml_path": f"{path_prefix}{english_filename}",
             "as_xml_path": f"{path_prefix}{assamese_filename}",
         })
         idx += 1
 
+        books.append({
+            "num": idx,
+            "id": english_filename,
+            "book_id": english_filename,
+            "title": title + (" - translated"  if "to-english" in english_filename else ""),
+            "author": author,
+            "publisher": publisher,
+            "url": url,
+        })
+
+        books_for_reader.append({
+            "id": english_filename,
+            "title": title + (" - translated"  if "to-english" in english_filename else ""),
+            "en_xml_path": f"{path_prefix}{english_filename}",
+            "as_xml_path": f"{path_prefix}{assamese_filename}",
+        })
+
+        idx += 1
     return books, books_for_reader
 
 
@@ -456,9 +475,9 @@ def _search(query, results_per_page, start_index, end_index):
         )
         # match_score = page_match_score(content.text, query_words_equiv)
         url = f"/book#/book/{book_file_path}?page={page_no}&lang=en"
+
         data.append(
             (title, author, url, "...<br><br>...".join(modified_texts), page_no)
         )
 
-    print(data) 
     return num_pages, data

@@ -25,10 +25,18 @@ from utilities import equivalent_text
 from stop_words import stop_words
 
 
+num_books_inserted = 0
+num_pages_inserted = 0
+num_words_inserted = 0
+num_chars_inserted = 0
+
 def main():
     """This script few txt file with book/pages and inserts the word index to the specified table"""
     args = create_arguments()
     book_index, word_indices, content_array = create_index(args)
+    print(f"INFO: BOOKS CREATED : {len(book_index)}")
+    print(f"INFO: WORDS CREATED : {len(word_indices)}")
+    print(f"INFO: PAGES CREATED : {len(content_array)}")
 
     app = Flask(__name__)
     if "prod" in args.db_file:
@@ -49,18 +57,19 @@ def main():
         db.create_all()
         db.session.commit()
 
-        insert_books_to_db(db, book_index)
-        print(f"INFO: INSERTED THE BOOKS")
+        num_books = insert_books_to_db(db, book_index)
+        print(f"INFO: INSERTED THE BOOKS :{num_books}")
         db.session.commit()
 
-        insert_words_to_db(db, word_indices)
-        print(f"INFO: INSERTED THE WORDS")
+        num_words = insert_words_to_db(db, word_indices)
+        print(f"INFO: INSERTED THE WORDS: {num_words}")
         db.session.commit()
 
-        insert_content_to_db(db, content_array)
-        print(f"INFO: INSERTED THE CONTENTS")
+        num_pages = insert_content_to_db(db, content_array)
+        print(f"INFO: INSERTED THE CONTENTS: {num_pages}")
         db.session.commit()
 
+        print(f'INFO: DATABASE URI {app.config["SQLALCHEMY_DATABASE_URI"]}')
 
 # Define a function to replace Bengali Unicode points with their corresponding Assamese Unicode points
 def convert_to_assamese(text):
@@ -86,9 +95,13 @@ def convert_to_assamese(text):
 
 
 def insert_books_to_db(db, index_array):
+    num_books = 0
     for book_id, title, author, url, book_file_path in index_array:
+        book_file_base = os.path.basename(book_file_path)
         print(book_id, title, author, url)
-        db.session.add(Books(book_id, title, author, url))
+        db.session.add(Books(book_id, title, author, book_file_base,  url))
+        num_books += 1
+    return num_books
 
 
 def insert_words_to_db(db, index_array):
@@ -105,14 +118,20 @@ def insert_words_to_db(db, index_array):
             continue
 
         db.session.add(Words(index, word_equiv, value))
+        i += 1
+    return i
 
 
 def insert_content_to_db(db, index_array):
+    num_pages = 0
     for _id, index, word, value in index_array:
         if len(value) > 5000:
             print("skipping excessively large page text", len(value))
             continue
         db.session.add(Content(_id, index, word, value))
+        num_pages += 1
+
+    return num_pages
 
 
 def create_index(args):
@@ -171,8 +190,6 @@ def create_index(args):
     print("Books in book-list.tsv with OCR txt file:")
     # Open the file in read-only mode with the correct encoding
     for book_id, book_file_path in book_text_files:
-        print("\tbook file ", int(book_id) + 1, book_file_path)
-
         # Parse the XML document
         with open(book_file_path, encoding="utf-8") as f:
             # Parse the XML file using ElementTree
@@ -183,23 +200,25 @@ def create_index(args):
 
         # Parse the XML document
         # root = ET.fromstring(xml_string)
-
         # Iterate over the child elements of the root element
         for page in root:
             # Print the tag name and text content of each child element
             page_no = int(page.find("page_no").text.strip())
 
-            raw_page_content = page.find("content").text
+            raw_page_content = page.find("content")
 
             # Replace all occurrences of "য়" with "য়"
             # raw_page_content = raw_page_content.replace("য়", "য়").replace("ড়", "ড়").replace("র", "ৰ")
 
-            raw_page_content = (
-                raw_page_content.replace("য়", "য়")
-                .replace("ড়", "ড়")
-                .replace("র", "ৰ")
-                .replace("ঢ়", "ঢ়")
-            )
+            try:
+               raw_page_content = (
+                  raw_page_content.text.replace("য়", "য়")
+                  .replace("ড়", "ড়")
+                  .replace("র", "ৰ")
+                  .replace("ঢ়", "ঢ়")
+               )
+            except:
+               continue
 
             raw_page_content = re.sub(r"\n", " ", raw_page_content)
 
@@ -233,6 +252,7 @@ def create_index(args):
         for idx, (word_equiv, word_idx) in enumerate(word_index.items())
     ]
 
+    print('word index', len(word_index))
     return book_index, word_indices, content_array
 
 
