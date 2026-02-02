@@ -7,12 +7,14 @@ class Books(db.Model):
     id = db.Column(db.Integer)
     title = db.Column(db.String(400))
     author = db.Column(db.String(100))
+    book_file_path = db.Column(db.String(400))
     url = db.Column(db.String(400))
 
-    def __init__(self, book_id, title, author, url):
+    def __init__(self, book_id, title, author, book_file_path, url):
         self.id = book_id
         self.title = title
         self.author = author
+        self.book_file_path = book_file_path
         self.url = url
 
 

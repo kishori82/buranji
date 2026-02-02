@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilingual Book: English & Assamese</title>
+    <link rel="stylesheet" href="book.css">
+</head>
+<body>
+
+    <div id="book-list-view">
+        <div id="book-list"></div>
+    </div>
+
+    <div id="reader-view">
+        <div id="sidebar">
+            <h2>Page</h2>
+            <div id="page-links"></div>
+        </div>
+
+        <div id="main-wrapper">
+            <div id="top-bar">
+                <button id="btn-back" type="button">Back</button>
+                <div class="toggle-container">
+                    <button id="btn-en" class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                    <button id="btn-as" class="lang-btn" onclick="setLanguage('as')">AS</button>
+                </div>
+            </div>
+
+            <div id="content-container">
+                <div id="page-content">
+                    <div id="page-header">
+                        <div id="page-number"></div>
+                        <h3 id="page-title"></h3>
+                    </div>
+                    <div id="page-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="book.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+</body>
+</html>
