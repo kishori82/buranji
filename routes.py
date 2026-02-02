@@ -96,7 +96,7 @@ def load_books_list_from_tsv(tsv_path: str):
             "num": idx,
             "id": assamese_filename,
             "book_id": assamese_filename,
-            "title": title + (" - translated"  if "to-assamese" in assamese_filename else ""),
+            "title": title,
             "author": author,
             "publisher": publisher,
             "url": url,
@@ -104,7 +104,7 @@ def load_books_list_from_tsv(tsv_path: str):
 
         books_for_reader.append({
             "id": assamese_filename,
-            "title": title + (" - translated"  if "to-assamese" in assamese_filename else ""),
+            "title": title,
             "en_xml_path": f"{path_prefix}{english_filename}",
             "as_xml_path": f"{path_prefix}{assamese_filename}",
         })
@@ -114,7 +114,7 @@ def load_books_list_from_tsv(tsv_path: str):
             "num": idx,
             "id": english_filename,
             "book_id": english_filename,
-            "title": title + (" - translated"  if "to-english" in english_filename else ""),
+            "title": title,
             "author": author,
             "publisher": publisher,
             "url": url,
@@ -122,7 +122,7 @@ def load_books_list_from_tsv(tsv_path: str):
 
         books_for_reader.append({
             "id": english_filename,
-            "title": title + (" - translated"  if "to-english" in english_filename else ""),
+            "title": title,
             "en_xml_path": f"{path_prefix}{english_filename}",
             "as_xml_path": f"{path_prefix}{assamese_filename}",
         })

@@ -18,6 +18,18 @@
 
 <body>
 
+    <nav class="navbar navbar-expand-md bg-light navbar-light">
+      <a class="navbar-brand" href="{{ url_for('index') }}">Buranji</a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('book') }}">References</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('team') }}">Team</a>
+        </li>
+      </ul>
+    </nav>
+
 	<div class="container">
 		<h2>Buranji Team</h2>
 
