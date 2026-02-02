@@ -3,7 +3,7 @@ import json
 import os
 import threading
 import xml.etree.ElementTree as ET
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, url_for
 from flask_sqlalchemy import SQLAlchemy
 from models import Books, Words, Content
 from extensions import db   
@@ -37,7 +37,8 @@ app = create_app()
 
 @app.route("/book", methods=["GET"])
 def book():
-    return render_template("book.html")
+    return_to = request.referrer or url_for("index")
+    return render_template("book.html", return_to=return_to)
 
 
 @app.route("/book.js", methods=["GET"])
@@ -349,7 +350,7 @@ def search():
 
     if request.method == "POST":
         query = request.form["query"]
-        page = 1
+        return redirect(url_for("search", q=query, page=1))
 
     # Set the number of search results per page
     results_per_page = 5
