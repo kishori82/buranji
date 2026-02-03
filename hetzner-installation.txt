@@ -1,0 +1,158 @@
+    2  ssh-keygen -t ed25519 -C "kishori82@gmail.com"
+    6  ssh-keygen -t ed25519 -C "kishori82@gmail.com"
+    7  ls
+    8  more hetzner.pub 
+    9  ssh -T git@github.com 
+   11  mv hetzner ~/.ssh/
+   12  ssh -T git@github.com 
+   13  ls ~/.ssh/known_hosts 
+   17  ssh -T git@github.com
+   18  git clone git@github.com:kishori82/buranji.git
+
+   23  python3  -m venv buranjivenv
+   24  sudo python3  -m venv buranjivenv
+   25  apt install python3.12-venv
+   26  sudo python3  -m venv buranjivenv
+   27  uname -a
+   30  sudo apt install python3-venv
+   31  sudo apt install python3-pip python3-venv nginx
+   34  python3  -m venv buranjivenv
+   36  source buranjivenv/bin/activate
+   37  pip3 install -r requirements.txt 
+
+
+
+   68  python3 run.py 
+   69  pip install --upgrade typing-extensions
+   70  python3 run.py 
+   71  sudo apt update
+
+   72  sudo apt install postgresql postgresql-contrib libpq-dev python3-dev
+   73  curl -fsSL https://claude.ai/install.sh | bash
+   74  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+   76  pip install flask-sqlalchemy psycopg2-binary
+
+
+   89  sudo -u buranji psql
+   90  sudo -u postgres buranji
+   91  sudo -u postgres psql
+
+
+  123  more README.txt 
+
+  139  pip3  install psycopg2
+  144  pip3 install psycopg2-binary
+  145  sudo apt update
+  146  sudo apt install libpq-dev python3-dev gcc
+  148  pip3 install psycopg2
+  152  python3 utilities/create-word-index.py --db-file prod --books ../ocr-project/books/text/*.txt --books-info-file book-list.tsv
+
+
+  153  pip3 install psycopg2
+  154  sudo apt install libpq-dev python3-dev gcc
+  155  pip3 install psycopg2
+  156  pip install psycopg2
+  157  pip3 install psycopg2-binary
+  158  vi requirements.txt 
+  159  deactivate 
+  160  source buranjivenv/bin/activate
+  162  pip3 install -r requirements.txt 
+  163  ls
+  177  export SQLALCHEMY_DATABASE_URI=postgresql://buranji:buranji@localhost:5432/buranjidb
+  178  echo $SQLALCHEMY_DATABASE_URI
+  181  more config.py 
+  182  export SECRET_HOST=localhost
+  183  export DATABASE_PORT=5432
+  184  export DATABASE_USER=buranji
+  185  export DATABASE_PASSWORD=buranji
+  188  export DATABASE_URI=postgresql://buranji:buranji@localhost:5432/buranjidb
+  192  sudo postgres -u psql
+  193  sudo -u postgres psql
+  194  python3 utilities/create-word-index.py --db-file prod --books ../ocr-project/books/text/*.txt --books-info-file book-list.tsv
+
+  197  flask --app=run.py shell
+  200  sudo -u postgres psql -d buranji_db
+  202  flask --app=run.py shell
+  204  sudo apt install python3-pip python3-venv nginx
+
+
+  210  vi README.txt 
+  211  pip install gunicorn
+  212  gunicorn --bind 0.0.0.0:5000 application:application
+  215  gunicorn --bind 0.0.0.0:5000 app:application
+
+  222  cp buranji.service /etc/systemd/system/
+  223  sudo systemctl enable buranji.service
+  224  sudo systemctl start  buranji.service
+  225  sudo journalctl -u  buranji.service -f
+  226  sudo systemctl status buranji.service
+  227  vi /etc/systemd/system/buranji.service 
+  228  /home/root/buranji/buranji/buranjivenv/bin/gunicorn
+  259  namei -l /root/buranji/buranji/buranji.sock
+  260  ls -ltr /root/buranji/buranji/buranji.sock
+  261  mv  /root/buranji/buranji/buranji.sock /run/
+  263  ls -ltr /run/buranji.sock 
+  265  vi /etc/systemd/system
+  266  sudo systemctl daemon-reload 
+  267  sudo systemctl restart buranji.service 
+  268  sudo systemctl status buranji.service 
+  269  sudo systemctl restart nginx.service 
+  270  vi /etc/nginx/sites-available/default 
+  274  ls /root/buranji/buranji/static/
+  275  vi  /root/buranji/buranji/templates/index.html 
+
+  276  sudo systemctl restart nginx.service 
+  277  chmod -r 777  /root/buranji/buranji/
+  278  chmod -R 777 /root/buranji/buranji/
+  279  sudo systemctl restart nginx.service 
+  280  chmod -R 777 /root/buranji/buranji/static/
+  281  ls -ltr  /root/buranji/buranji/static/
+  282  vi /etc/nginx/sites-available/default 
+  283  vi /etc/systemd/system/buranji.service 
+  284  chown -R root:www-data /root/buranji/buranji/
+
+  294  sudo apt install --classic certbot
+  295  sudo ln -s /snap/bin/certbot /usr/bin/certbot
+  298  vi /etc/nginx/sites-available/default 
+
+
+  299  sudo certbot --nginx -d buranji.com -d www.buranji.com
+  300  sudo systemctl restart nginx.service 
+  302  more  /etc/nginx/sites-available/default 
+
+  304  # Create the directory
+  305  mkdir -p /var/www/buranji/static
+  306  # Copy your static files there
+  307  cp -r /root/buranji/buranji/static/* /var/www/buranji/static/
+  308  # Set ownership so Nginx can read them
+  309  chown -R www-data:www-data /var/www/buranji/static
+  310  chmod -R 755 /var/www/buranji/static
+  311  vi   /etc/nginx/sites-available/default 
+  312  sudo nginx -t
+  313  sudo systemctl restart nginx
+
+  347  sudo systemctl status ngnix
+  348  sudo systemctl status ngnix.service
+
+  351  sudo systemctl daemon-reload
+  352  sudo systemctl restart nginx
+  354  sudo journalctl -u  nginx -f
+  355  ps -eaf | grep gunicorn
+  356  more /var/log/nginx/error.log
+  359  sudo jounralctl -u  buranji.service -f
+
+  366  sudo systemctl daemon-reload
+  367  sudo systemctl restart buranji.service 
+
+  369  source /root/buranji/buranji/buranjivenv/bin/activate
+  370  /root/buranji/buranji/buranjivenv/bin/gunicorn --workers 3 --bind unix:/run/buranji.sock -m 007 routes:app
+
+  375  chmod +x /root/buranji/buranji/buranjivenv/bin/gunicorn
+  376  /root/buranji/buranji/buranjivenv/bin/gunicorn
+
+  380  /root/buranji/buranji/buranjivenv/bin/gunicorn --workers 3 --bind unix:/run/buranji.sock -m 007 routes:app
+  381  sudo systemctl restart buranji.service 
+  382  systemctl daemon-reload
+  383  sudo systemctl restart buranji.service 
+  384  sudo systemctl status  buranji.service 
+  385  cp /etc/systemd/system/buranji.service utilities/
