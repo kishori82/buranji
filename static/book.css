@@ -108,6 +108,7 @@ body {
     background: white;
     padding: 0;
     box-shadow: none;
+    border: 2px solid #ddd;
     line-height: 1.8;
     border-radius: 0;
     display: flex;
