@@ -33,6 +33,7 @@ _BOOKS_LOCK = threading.Lock()
 BOOKS = None
 
 app = create_app()
+app.debug = True
 
 
 @app.route("/book", methods=["GET"])
@@ -351,7 +352,6 @@ def search():
     if request.method == "POST":
         query = request.form["query"]
         return redirect(url_for("search", q=query, page=1))
-
     # Set the number of search results per page
     results_per_page = 5
 

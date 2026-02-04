@@ -149,22 +149,22 @@ def create_index(args):
                 continue
             fields = [x.strip() for x in line.strip().split("\t")]
             if fields and len(fields) >= 7:
-                book_info[fields[0]] = fields[2:]
-                book_info[fields[1]] = fields[2:]
+                book_info[fields[0]] = fields[3:]
+                book_info[fields[1]] = fields[3:]
 
     book_index = []
     for book_id, book_file_path in enumerate(args.books):
         book_file_base = os.path.basename(book_file_path)
 
         if book_file_base in book_info:
-            # insert the tuple (book_id, title, author, url)
+            # insert the tuple (book_id, title, author, url, filepath)
             book_index.append(
                 (
                     str(book_id),
                     book_info[book_file_base][0],
                     book_info[book_file_base][1],
                     book_info[book_file_base][2],
-                    book_file_path,
+                    book_file_path
                 )
             )
         else:
